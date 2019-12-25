@@ -1,0 +1,30 @@
+#pragma once
+#include "window_log.h";
+
+using func_map = std::unordered_map<std::string, std::function<void(std::string)>>; // alias för en map/dictionary med nyckeln string och datan en funktion som returnerar void men tar emot en sträng som parameter
+//using func_map_int = std::unordered_map<std::string, std::function<void(const command_line&, std::string)>>; // alias för en map/dictionary med nyckeln string och datan en funktion som returnerar void men tar emot en sträng som parameter
+
+//används för att skapa en konsol i en viss del av skärmen 
+class command_line :
+	public window_log // ärver från window_log som ärver från ui_element
+{
+public:
+	command_line(window&, point, size, std::string, func_map); // skapa konsolen med ett föräldrar fönster, position, storlek, prompt-meddelande och en funktions map
+	void prompt(); // för att acceptera ett kommando och exekevera om den finns i funk mappen
+	bool alive(); // för att bryta loopen vid tex shutdown 
+private:
+	void dö();
+	std::string prompt_; // prompt-meddelande
+	func_map external_functions_; // map av ytre funktioner
+	func_map internal_functions_ = { // map av internal funktioner för hantera konsolen
+		{"clear", [&](std::string param) {data_.clear(); cursor_ = 0; }},
+		{"sdaf", [&](std::string param) {*this << "HEHEEH BOII\n"; }},
+		{"shutdown", [&](std::string param) { dö(); }}
+	};
+	bool alive_; // för att upperäthålla en loop
+	std::string input(int y); // för att ta input vid en specifik y koordinat
+	std::vector<std::string> argument_parser(std::string); // parsa sträng efter mellanslag för att seperera argument
+	bool map_exist_execute(func_map, std::string, std::string);
+	std::pair<std::string, std::string> split_input(std::string); // splita input mellan första ' '
+};
+
