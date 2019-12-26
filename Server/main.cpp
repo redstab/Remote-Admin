@@ -40,7 +40,7 @@ int main()
 	title titel(win, " Remote Administration Tool ", 1);
 
 	func_map fs = {
-		{"hello", [&](std::string param) {mvprintw(0,0,param.c_str()); }}
+		{"hello", [&](std::string param) {mvprintw(0,0,param.c_str()); refresh(); }}
 	};
 
 	line vertical_seperator(win, { win.get_size().x / 2, 3 }, win.get_size().y - 3, orientation::vertical);
