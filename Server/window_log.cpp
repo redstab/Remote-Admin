@@ -40,29 +40,14 @@ void window_log::append(std::string input)
 			char_count_ += rem;
 		}
 		else { // lägg till karktären i buffern och öka räknaren
-			switch (c) { // för svenska karakrärer, måste bygga om ncurse för att stödja wide char :<
-			case 'Å':
-				data_ += 'A';
-				break;
-			case 'Ä':
-				data_ += 'A';
-				break;
-			case 'Ö':
-				data_ += 'O';
-				break;
-			case 'å':
-				data_ += 'a';
-				break;
-			case 'ä':
-				data_ += 'a';
-				break;
-			case 'ö':
-				data_ += 'o';
-				break;
-			default:
-				data_ += c;
-				break;
-			}
+			// för svenska karakrärer, måste bygga om ncurse för att stödja wide char :<
+			//if (strchr("åä", c)) {
+			//	c = 'a';
+			//}
+			//else if (c == 'ö') {
+			//	c = 'o';
+			//}
+			data_ += c;
 			char_count_ += 1;
 		}
 
@@ -91,10 +76,30 @@ size window_log::get_element_size() const
 
 void window_log::draw_element()
 {
+	// map för att konvertera svenska chars till curses altchars
+	std::unordered_map<char, chtype> swedish = { 
+		{'å', 229},
+		{'ä', 228},
+		{'ö', 246},
+		{'Å', 197},
+		{'Ä', 196},
+		{'Ö', 214}
+	};
+
 	// extrahera en buffer från antalet karaktärer vid cursor med storleken max_char_count_ eller en hel sida 
 	std::string buffer = data_.substr(cursor_ * max_lenght_, max_char_count_); 
 	buffer += std::string(max_char_count_ - buffer.length(), ' '); // padda slutet ifall sista raden inte är helt utskriven 
-	mvwaddstr(derived_, 0, 0, buffer.c_str()); // skriv buffer till skärmen 
+	wmove(derived_, 0, 0);
+	for (auto chr : buffer) {
+		if (strchr("åäöÅÄÖ", chr)) {
+			waddch(derived_, swedish[chr]);
+		}
+		else {
+			waddch(derived_, chr);
+		}
+	}
+	
+	//mvwaddstr(derived_, 0, 0, buffer.c_str()); // skriv buffer till skärmen 
 	
 	// uppdatera fönster
 	wrefresh(derived_); 

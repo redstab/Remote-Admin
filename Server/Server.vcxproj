@@ -158,6 +158,7 @@
     <ClCompile Include="input_box.cpp" />
     <ClCompile Include="line.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="server.cpp" />
     <ClCompile Include="tcp_server.cpp" />
     <ClCompile Include="text.cpp" />
     <ClCompile Include="title.cpp" />
@@ -175,6 +176,7 @@
     <ClInclude Include="pod.h" />
     <ClInclude Include="point.h" />
     <ClInclude Include="precompile.h" />
+    <ClInclude Include="server.h" />
     <ClInclude Include="tcp_server.h" />
     <ClInclude Include="text.h" />
     <ClInclude Include="title.h" />

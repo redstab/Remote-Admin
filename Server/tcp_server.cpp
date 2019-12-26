@@ -65,7 +65,7 @@ void tcp_server::run()
 			for (auto& klient : clients.get_list()) {
 				if (readable(klient.socket_id)) {
 					if (!packet_queue.empty()) {
-						*log << "[ " << std::to_string(klient.socket_id) << " data: " << packet_queue.back().data << " id: " << packet_queue.back().id << " ]\n";
+						*log << "[ " << std::to_string(klient.socket_id) << " data: " << packet_queue.back().data.substr(0,16) << " id: " << packet_queue.back().id.substr(0, 16) << " ]\n";
 					}
 					packet paket = receive_paket(klient);
 					if (paket.data != "" && paket.id != "") {
@@ -96,8 +96,8 @@ packet tcp_server::receive_paket(client& klient)
 		paket.owner = &klient; // specifiera vem som äger paketet
 	}
 	else {
-		*log << std::to_string(huvud.data_size) << " " << std::to_string(huvud.id_size) << "\n";
-		::send(klient.socket_id, "0", 1, 0); // signalera att header hade error och att man inte ska skicka datan och idet
+		//*log << std::to_string(huvud.data_size) << " " << std::to_string(huvud.id_size) << "\n";
+		::send(klient.socket_id, "0", 1, 0); // signalera att header hade error och att man inte ska skicka datan och idet, oftast sker detta vid buffer overflow eller när klienten disconnectar
 	}
 
 	return paket;
@@ -112,7 +112,7 @@ std::string tcp_server::receive_bytes(client& klient, int size)
 		data += std::string(buffer.begin(), buffer.end()); // konvertera buffern till sträng
 	}
 	else if (bytes_received <= 0) { // user disconnected 
-		*log << "Disconnected: " << klient.to_string() << "\n";
+		*log << "disconnect() - " << klient.to_string() << "\n";
 		clients.disconnect_client(klient);
 	}
 	return data;
