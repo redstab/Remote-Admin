@@ -31,6 +31,10 @@ struct client {
 			socket_id == that.socket_id &&
 			name == that.name;
 	}
+
+	std::string to_string() {
+		return "[" + std::to_string(socket_id ) + "|" + ip_address + "|" + name + "]";
+	}
 };
 
 inline std::ostream& operator<<(std::ostream& os, const client& m) // vid utskrift av klient

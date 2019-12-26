@@ -30,8 +30,11 @@ void draw_wireframe() {
 int main()
 {
 	std::locale::global(std::locale("sw"));
-
+	setlocale(LC_CTYPE, "");
 	curse c;
+
+	startup_wsa();
+
 
 	const int padding = 5;
 
@@ -50,6 +53,13 @@ int main()
 
 	window_log log(win, { win.get_size().x / 2 + 1,3 }, { win.get_size().x / 2 - 2, win.get_size().y - 4 }, true);
 
+	tcp_server s(54321, &log);
+
+	s.bind();
+	s.listen();
+
+	std::thread server(&tcp_server::run, s);
+
 	titel.draw_element();
 	vertical_seperator.draw_element();
 	horizontal_seperator.draw_element();
@@ -58,8 +68,9 @@ int main()
 
 	while (cli.alive()) {
 		cli.prompt();
-		log << std::to_string(rand()) << "\n";
+		//log << std::to_string(rand()) << "\n";
 	}
+	server.join();
 
 	//startup_wsa();
 

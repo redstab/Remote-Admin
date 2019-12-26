@@ -15,6 +15,9 @@ struct Error
 	operator bool() const{ // vid if(error)
 		return code != ERROR_SUCCESS;
 	}
+	std::string to_string() {
+		return "[" + std::to_string(code) + "] " + msg;
+	}
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Error& m) // vid utskrivt std::cout << error << std::endl;

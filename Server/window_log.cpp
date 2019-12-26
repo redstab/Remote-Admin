@@ -40,7 +40,29 @@ void window_log::append(std::string input)
 			char_count_ += rem;
 		}
 		else { // lägg till karktären i buffern och öka räknaren
-			data_ += c;
+			switch (c) { // för svenska karakrärer, måste bygga om ncurse för att stödja wide char :<
+			case 'Å':
+				data_ += 'A';
+				break;
+			case 'Ä':
+				data_ += 'A';
+				break;
+			case 'Ö':
+				data_ += 'O';
+				break;
+			case 'å':
+				data_ += 'a';
+				break;
+			case 'ä':
+				data_ += 'a';
+				break;
+			case 'ö':
+				data_ += 'o';
+				break;
+			default:
+				data_ += c;
+				break;
+			}
 			char_count_ += 1;
 		}
 

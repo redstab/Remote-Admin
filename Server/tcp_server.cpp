@@ -1,12 +1,12 @@
 #include "precompile.h"
 #include "tcp_server.h"
 
-void tcp_server::set_log_stream(std::ostream* stream)
+void tcp_server::set_log_stream(window_log* stream)
 {
 	log = stream;
 }
 
-std::ostream* tcp_server::get_log_stream()
+window_log* tcp_server::get_log_stream()
 {
 	return log;
 }
@@ -26,7 +26,7 @@ void tcp_server::bind()
 	// Skapa socket
 	listen_socket = ::socket(AF_INET, SOCK_STREAM, 0);
 	Error socket_error = listen_socket;
-	*log << "socket() - " << socket_error << std::endl;
+	*log << "socket() - " << socket_error.to_string() << "\n";
 	if (socket_error) {
 		throw std::exception(std::string("socket() - " + socket_error.msg).c_str());
 	}
@@ -37,7 +37,7 @@ void tcp_server::bind()
 	service.sin_port = htons(listen_port); // port
 	service.sin_addr.S_un.S_addr = INADDR_ANY; // vilka adresser
 	Error bind_error = ::bind(listen_socket, (sockaddr*)&service, sizeof(service)); // bind
-	*log << "bind() - " << bind_error << std::endl;
+	*log << "bind() - " << bind_error.to_string() << "\n";
 	if (bind_error) {
 		throw std::exception(std::string("bind() - " + bind_error.msg).c_str());
 	}
@@ -48,7 +48,7 @@ void tcp_server::listen()
 
 	// Sätter listen_socket i läge för att lyssna efter nya anslutningar
 	Error listen_error = ::listen(listen_socket, SOMAXCONN);
-	*log << "listen() - " << listen_error << std::endl;
+	*log << "listen() - " << listen_error.to_string() << "\n";
 	if (listen_error) {
 		throw std::exception(std::string("listen() - " + listen_error.msg).c_str());
 	}
@@ -65,7 +65,7 @@ void tcp_server::run()
 			for (auto& klient : clients.get_list()) {
 				if (readable(klient.socket_id)) {
 					if (!packet_queue.empty()) {
-						std::cout << "[ " << klient.socket_id << " data: " << packet_queue.back().data.substr(0, 10) << " (10/" << packet_queue.back().data.length() << ") id: " << packet_queue.back().id.substr(0, 10) << " (10/" << packet_queue.back().data.length() << ") ]" << std::endl;
+						*log << "[ " << std::to_string(klient.socket_id) << " data: " << packet_queue.back().data << " id: " << packet_queue.back().id << " ]\n";
 					}
 					packet paket = receive_paket(klient);
 					if (paket.data != "" && paket.id != "") {
@@ -81,7 +81,7 @@ bool tcp_server::send(client klient, message meddelande)
 {
 	// med meddelande strukturen ex{ data: KS, id: HELLOWORLD } skapas meddelande buffer som ser ungefär ut så här: 000000000000010000000000000002HELLOWORLDKS
 	std::string buffer = meddelande.buffer();
-	return !Error(::send(klient.socket_id, buffer.c_str(), buffer.length(), 0)); // Kolla efter error och 
+	return !Error(::send(klient.socket_id, buffer.c_str(), buffer.length(), 0)); // Kolla efter error och skicka packet
 }
 
 packet tcp_server::receive_paket(client& klient)
@@ -91,11 +91,12 @@ packet tcp_server::receive_paket(client& klient)
 
 	if (huvud.data_size > 0 && huvud.id_size > 0) {
 		::send(klient.socket_id, "1", 1, 0); // signalera att headern blev emottagen och att man ska skicka datan och idet
-		paket.data = receive_bytes(klient, huvud.data_size);
-		paket.id = receive_bytes(klient, huvud.id_size);
-		paket.owner = &klient;
+		paket.id = receive_bytes(klient, huvud.id_size); // ta emot id
+		paket.data = receive_bytes(klient, huvud.data_size); // ta emot data
+		paket.owner = &klient; // specifiera vem som äger paketet
 	}
 	else {
+		*log << std::to_string(huvud.data_size) << " " << std::to_string(huvud.id_size) << "\n";
 		::send(klient.socket_id, "0", 1, 0); // signalera att header hade error och att man inte ska skicka datan och idet
 	}
 
@@ -111,7 +112,7 @@ std::string tcp_server::receive_bytes(client& klient, int size)
 		data += std::string(buffer.begin(), buffer.end()); // konvertera buffern till sträng
 	}
 	else if (bytes_received <= 0) { // user disconnected 
-		*log << "Disconnected: " << klient << std::endl;
+		*log << "Disconnected: " << klient.to_string() << "\n";
 		clients.disconnect_client(klient);
 	}
 	return data;
@@ -172,5 +173,5 @@ void tcp_server::accept_user()
 	SOCKET new_klient = accept(listen_socket, (sockaddr*)&socket_address, &address_length); // acceptera ny klient och samla socket information i socket_address 
 	inet_ntop(AF_INET, &socket_address.sin_addr, host, NI_MAXHOST); // socket_address till sträng
 	clients.add_client(new_klient, host); // lägg till en ny klient i listan
-	*log << "accept() - " << clients.search(std::to_string(new_klient)) << std::endl;
+	*log << "accept() - " << clients.search(std::to_string(new_klient)).to_string() << "\n";
 }

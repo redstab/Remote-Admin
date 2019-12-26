@@ -11,6 +11,7 @@
 #include <queue>
 #include <sstream>
 #include "curses.h"
+#include <thread>
 #include <optional>
 #include <functional>
 #include <iterator>

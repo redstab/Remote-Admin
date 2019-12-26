@@ -27,26 +27,26 @@ bool command_line::alive() // konsolen är vid liv?
 
 std::string command_line::input(int y)
 {
-	std::string output = ""; // buffer för inputen
+	std::string input_ = ""; // buffer för inputen
 
 	int key = 0;
 	int count = 0; // för att hålla koll så att vi inte skriver för långt
-	int length_ = max_size_.x - prompt_.length(); // längden som man för skriva på. Den är längden av hela konsolen minus prompten "server $ "
+	int length_ = max_size_.x - prompt_.length(); // längden som man för skriva på. Den är längden av hela konsolen minus prompten tex "server $ "
 
-	while (output == "") { // medans outputen är tom
+	while (input_ == "") { // medans outputen är tom
 		while (key != 13) { // medans key inte är enter
 
 			key = getch();
 
 			if (key >= 32 and key <= 126 and count < length_ and (cursor_ + max_size_.y) >(data_.length() / max_lenght_)) { // if alnum + cannot type if scrolling 
-				output.push_back(key); // lägg till en karaktär i buffern 
+				input_.push_back(key); // lägg till en karaktär i buffern 
 				mvwprintw(derived_, y, position_.x + count + prompt_.length() - 1, std::string(1, key).c_str()); // lägg grafiskt till en karaktär
 				++count;
 			}
 
 			else if ((key == key == 127 or key == '\b' or key == KEY_BACKSPACE) and count > 0 and (cursor_ + max_size_.y) > (data_.length() / max_lenght_)) { // if backspace + cannot type if scrolling
 				mvwprintw(derived_, y, position_.x + prompt_.length() + count - 2, " "); // ta grafiskt bort sista karaktären
-				output.pop_back(); // ta bort sista karaktären i buffern
+				input_.pop_back(); // ta bort sista karaktären i buffern
 				--count; // minska räknaren
 			}
 
@@ -66,7 +66,7 @@ std::string command_line::input(int y)
 		key = 0;
 	}
 
-	return output;
+	return input_;
 }
 
 std::vector<std::string> command_line::argument_parser(std::string input)
@@ -77,11 +77,12 @@ std::vector<std::string> command_line::argument_parser(std::string input)
 
 bool command_line::map_exist_execute(func_map fs, std::string func, std::string args)
 {
-	if (fs.count(func) != 0) {
-		fs[func](args);
+	if (fs.count(func) != 0) { // om nyckeln existerar 
+		fs[func](args); // exekvera
+		return true;
 	}
 	else {
-		return false;
+		return false; // return false
 	}
 }
 

@@ -2,12 +2,13 @@
 #include "precompile.h"
 #include "client_list.h"
 #include "Error.h"
+#include "window_log.h"
 
 // en inline funktion aka copy pasta funktion placerar en kopia av funktion där den kallas
 inline void startup_wsa() { // används för att initializera windows sockets till verision 2.2
 	WSAData ws;
 	Error wsa = WSAStartup(MAKEWORD(2, 2), &ws);
-	std::cout << "WSAStartup() - " << wsa << std::endl;
+	//std::cout << "WSAStartup() - " << wsa << std::endl;
 	if (wsa) {
 		exit(-1);
 	}
@@ -23,11 +24,11 @@ public:
 	/// </summary>
 	/// <param name="port">port att lyssna på</param>
 	/// <param name="output_stream">ofstream att logga till, kan vara fil, konsol eller pip</param>
-	tcp_server(int port, std::ostream* stream) : listen_port(port), log(stream) {}
+	tcp_server(int port, window_log* stream) : listen_port(port), log(stream) {}
 
 	// för att enkapsulera logger, detta på grund av att det är en osäker pekare
-	void set_log_stream(std::ostream*);
-	std::ostream* get_log_stream();
+	void set_log_stream(window_log*);
+	window_log* get_log_stream();
 
 	/// <summary>
 	/// Få åtkomst till paket kön för manipulering av data
@@ -76,7 +77,7 @@ private:
 
 	SOCKET listen_socket{0}; // tcp socket
 
-	std::ostream* log; // ström för output av information
+	window_log* log; // ström för output av information
 
 	/// <summary>
 	/// Ta emot ett psuedo tcp paket 
