@@ -31,6 +31,8 @@ public:
 	// returnera listan vid tex iterering av klienter
 	std::vector<client>& get_list();
 
+	void set_name(std::string name) { prefix_name = name; }
+
 private:
 	std::vector<client> list;
 	std::string prefix_name; // prefix namn vid namngivning av klienter tex guest_001 där guest är prefixet

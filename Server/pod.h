@@ -33,7 +33,7 @@ struct client {
 	}
 
 	std::string to_string() {
-		return "[" + std::to_string(socket_id ) + "|" + ip_address + "|" + name + "]";
+		return "[ sock-id: " + std::to_string(socket_id ) + ", ip: " + ip_address + ", name: " + name + " ]";
 	}
 };
 

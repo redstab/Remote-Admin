@@ -25,6 +25,15 @@ bool command_line::alive() // konsolen är vid liv?
 	return alive_;
 }
 
+std::string command_line::input_str(int)
+{
+	std::string old_prompt = prompt_;
+	std::string command = input((data_.length() / max_lenght_) - cursor_);
+	*this << command;
+	prompt_ = old_prompt;
+	return command;
+}
+
 std::string command_line::input(int y)
 {
 	std::string input_ = ""; // buffer för inputen

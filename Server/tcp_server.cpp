@@ -185,5 +185,5 @@ void tcp_server::accept_user()
 	SOCKET new_klient = accept(listen_socket, (sockaddr*)&socket_address, &address_length); // acceptera ny klient och samla socket information i socket_address 
 	inet_ntop(AF_INET, &socket_address.sin_addr, host, NI_MAXHOST); // socket_address till sträng
 	clients.add_client(new_klient, host); // lägg till en ny klient i listan
-	*log << str_time() << " accept() - " << clients.search(std::to_string(new_klient)).to_string() << "\n";
+	*log << str_time() << " accept() - " << Error(0).to_string() << "\n";
 }

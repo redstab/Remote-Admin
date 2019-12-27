@@ -24,7 +24,7 @@ public:
 	/// </summary>
 	/// <param name="port">port att lyssna på</param>
 	/// <param name="output_stream">ofstream att logga till, kan vara fil, konsol eller pip</param>
-	tcp_server(int port, window_log* stream) : listen_port(port), log(stream), alive{true} {}
+	tcp_server(int port, window_log* stream) : listen_port(port), log(stream), alive{ true } { clients.set_name("klient"); }
 
 	// för att enkapsulera logger, detta på grund av att det är en osäker pekare
 	void set_log_stream(window_log*);
