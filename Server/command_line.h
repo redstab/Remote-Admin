@@ -12,14 +12,12 @@ public:
 	command_line(window&, point, size, std::string, func_map); // skapa konsolen med ett föräldrar fönster, position, storlek, prompt-meddelande och en funktions map
 	void prompt(); // för att acceptera ett kommando och exekevera om den finns i funk mappen
 	bool alive(); // för att bryta loopen vid tex shutdown 
-private:
 	void dö();
+private:
 	std::string prompt_; // prompt-meddelande
 	func_map external_functions_; // map av ytre funktioner
 	func_map internal_functions_ = { // map av internal funktioner för hantera konsolen
-		{"clear", [&](std::string param) {data_.clear(); cursor_ = 0; }},
-		{"sdaf", [&](std::string param) {*this << "HEHEEH BOII\n"; }},
-		{"shutdown", [&](std::string param) { dö(); }}
+		{"clear", [&](std::string param) {data_.clear(); cursor_ = 0; }}
 	};
 	bool alive_; // för att upperäthålla en loop
 	std::string input(int y); // för att ta input vid en specifik y koordinat

@@ -24,7 +24,7 @@ public:
 	/// </summary>
 	/// <param name="port">port att lyssna på</param>
 	/// <param name="output_stream">ofstream att logga till, kan vara fil, konsol eller pip</param>
-	tcp_server(int port, window_log* stream) : listen_port(port), log(stream) {}
+	tcp_server(int port, window_log* stream) : listen_port(port), log(stream), alive{true} {}
 
 	// för att enkapsulera logger, detta på grund av att det är en osäker pekare
 	void set_log_stream(window_log*);
@@ -67,7 +67,9 @@ public:
 	/// <returns>True: inga errors, False: send error</returns>
 	bool send(client, message);
 
-private:
+protected:
+
+	bool alive;
 
 	client_list clients{}; // lista av klienter
 
@@ -78,6 +80,12 @@ private:
 	SOCKET listen_socket{0}; // tcp socket
 
 	window_log* log; // ström för output av information
+
+	/// <summary>
+	/// Får tiden som en sträng
+	/// </summary>
+	/// <returns>tiden</returns>
+	std::string str_time();
 
 	/// <summary>
 	/// Ta emot ett psuedo tcp paket 

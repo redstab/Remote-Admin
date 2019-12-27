@@ -6,6 +6,7 @@
 #include "command_line.h"
 #include "line.h"
 #include "window_log.h"
+#include "server.h"
 
 void draw_wireframe() {
 	mvvline(2, COLS / 2, 0, LINES - 2);
@@ -86,39 +87,52 @@ int main()
 
 	const int padding = 5;
 
-	window win({ 120 - padding * 2,30 - padding });
+	window win({ COLS - padding * 2,LINES - padding });
 
 	title titel(win, " Remote Administration Tool ", 1);
+	line vertical_seperator(win, { win.get_size().x / 2, 3 }, win.get_size().y - 4, orientation::vertical);
+	line horizontal_seperator(win, { 1, 2 }, win.get_size().x - 2, orientation::horizontal);
 
-	func_map fs = {
-		{"hello", [&](std::string param) {mvprintw(0,0,param.c_str()); refresh(); }}
-	};
+	server main(win, { 0,0 }, 54321, {&titel, &vertical_seperator, &horizontal_seperator});
 
-	line vertical_seperator(win, { win.get_size().x / 2, 3 }, win.get_size().y - 3, orientation::vertical);
-	line horizontal_seperator(win, { 1, 2 }, win.get_size().x, orientation::horizontal);
-
-	command_line cli(win, { 1,3 }, { win.get_size().x / 2 - 1, (win.get_size().y) - 4 }, "server $ ", fs);/*(win, { 1,2 }, { win.get_size().x / 2, (win.get_size().y)-3 });*/
-
-	window_log log(win, { win.get_size().x / 2 + 1,3 }, { win.get_size().x / 2 - 2, win.get_size().y - 4 }, true);
-
-	tcp_server s(54321, &log);
-
-	s.bind();
-	s.listen();
-
-	std::thread server(&tcp_server::run, s);
-
-	titel.draw_element();
-	vertical_seperator.draw_element();
-	horizontal_seperator.draw_element();
+	main.draw_element();
 
 	win.show_border();
 
-	while (cli.alive()) {
-		cli.prompt();
-	}
-	
-	server.join();
+	main.bind();
+
+	main.listen();
+
+	main.startup();
+
+	main.cli_loop();
+
+	//func_map fs = {
+	//	{"hello", [&](std::string param) {mvprintw(0,0,param.c_str()); refresh(); }}
+	//};
+
+	//command_line cli(win, { 1,3 }, { win.get_size().x / 2 - 1, (win.get_size().y) - 4 }, "server $ ", fs);/*(win, { 1,2 }, { win.get_size().x / 2, (win.get_size().y)-3 });*/
+
+	//window_log log(win, { win.get_size().x / 2 + 1,3 }, { win.get_size().x / 2 - 2, win.get_size().y - 4 }, true);
+
+	//tcp_server s(54321, &log);
+
+	//s.bind();
+	//s.listen();
+
+	//std::thread server(&tcp_server::run, s);
+
+	//titel.draw_element();
+	//vertical_seperator.draw_element();
+	//horizontal_seperator.draw_element();
+
+	//win.show_border();
+
+	//while (cli.alive()) {
+	//	cli.prompt();
+	//}
+	//
+	//server.join();
 
 	//startup_wsa();
 

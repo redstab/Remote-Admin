@@ -39,14 +39,7 @@ void window_log::append(std::string input)
 			data_ += std::string(rem, ' ');
 			char_count_ += rem;
 		}
-		else { // lägg till karktären i buffern och öka räknaren
-			// för svenska karakrärer, måste bygga om ncurse för att stödja wide char :<
-			//if (strchr("åä", c)) {
-			//	c = 'a';
-			//}
-			//else if (c == 'ö') {
-			//	c = 'o';
-			//}
+		else {
 			data_ += c;
 			char_count_ += 1;
 		}
@@ -102,6 +95,7 @@ void window_log::draw_element()
 	//mvwaddstr(derived_, 0, 0, buffer.c_str()); // skriv buffer till skärmen 
 	
 	// uppdatera fönster
-	wrefresh(derived_); 
+	refresh();
 	wrefresh(window_.get_window());
+	wrefresh(derived_);
 }

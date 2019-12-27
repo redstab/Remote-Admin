@@ -12,6 +12,8 @@
 #include <sstream>
 #include "curses.h"
 #include <thread>
+#include <chrono>
+#include <iomanip>
 #include <optional>
 #include <functional>
 #include <iterator>

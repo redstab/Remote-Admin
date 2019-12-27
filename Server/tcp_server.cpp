@@ -25,8 +25,11 @@ void tcp_server::bind()
 {
 	// Skapa socket
 	listen_socket = ::socket(AF_INET, SOCK_STREAM, 0);
+	
 	Error socket_error = listen_socket;
-	*log << "socket() - " << socket_error.to_string() << "\n";
+
+
+	*log << str_time() << " socket() - " << socket_error.to_string() << "\n";
 	if (socket_error) {
 		throw std::exception(std::string("socket() - " + socket_error.msg).c_str());
 	}
@@ -37,7 +40,7 @@ void tcp_server::bind()
 	service.sin_port = htons(listen_port); // port
 	service.sin_addr.S_un.S_addr = INADDR_ANY; // vilka adresser
 	Error bind_error = ::bind(listen_socket, (sockaddr*)&service, sizeof(service)); // bind
-	*log << "bind() - " << bind_error.to_string() << "\n";
+	*log << str_time() << " bind() - " << bind_error.to_string() << "\n";
 	if (bind_error) {
 		throw std::exception(std::string("bind() - " + bind_error.msg).c_str());
 	}
@@ -48,7 +51,7 @@ void tcp_server::listen()
 
 	// Sätter listen_socket i läge för att lyssna efter nya anslutningar
 	Error listen_error = ::listen(listen_socket, SOMAXCONN);
-	*log << "listen() - " << listen_error.to_string() << "\n";
+	*log << str_time() << " listen() - " << listen_error.to_string() << "\n";
 	if (listen_error) {
 		throw std::exception(std::string("listen() - " + listen_error.msg).c_str());
 	}
@@ -57,7 +60,7 @@ void tcp_server::listen()
 
 void tcp_server::run()
 {
-	while (true) {
+	while (alive) {
 		if (readable(listen_socket)) {
 			accept_user();
 		}
@@ -65,7 +68,7 @@ void tcp_server::run()
 			for (auto& klient : clients.get_list()) {
 				if (readable(klient.socket_id)) {
 					if (!packet_queue.empty()) {
-						*log << "[ " << std::to_string(klient.socket_id) << " data: " << packet_queue.back().data.substr(0,16) << " id: " << packet_queue.back().id.substr(0, 16) << " ]\n";
+						*log << str_time() << " [ " << std::to_string(klient.socket_id) << " data: " << packet_queue.back().data.substr(0,16) << " id: " << packet_queue.back().id.substr(0, 16) << " ]\n";
 					}
 					packet paket = receive_paket(klient);
 					if (paket.data != "" && paket.id != "") {
@@ -82,6 +85,15 @@ bool tcp_server::send(client klient, message meddelande)
 	// med meddelande strukturen ex{ data: KS, id: HELLOWORLD } skapas meddelande buffer som ser ungefär ut så här: 000000000000010000000000000002HELLOWORLDKS
 	std::string buffer = meddelande.buffer();
 	return !Error(::send(klient.socket_id, buffer.c_str(), buffer.length(), 0)); // Kolla efter error och skicka packet
+}
+
+std::string tcp_server::str_time()
+{
+	auto n = std::chrono::system_clock::now();
+	auto nc = std::chrono::system_clock::to_time_t(n);
+	std::stringstream ss;
+	ss << std::put_time(std::localtime(&nc), "[%T]");
+	return ss.str();
 }
 
 packet tcp_server::receive_paket(client& klient)
@@ -173,5 +185,5 @@ void tcp_server::accept_user()
 	SOCKET new_klient = accept(listen_socket, (sockaddr*)&socket_address, &address_length); // acceptera ny klient och samla socket information i socket_address 
 	inet_ntop(AF_INET, &socket_address.sin_addr, host, NI_MAXHOST); // socket_address till sträng
 	clients.add_client(new_klient, host); // lägg till en ny klient i listan
-	*log << "accept() - " << clients.search(std::to_string(new_klient)).to_string() << "\n";
+	*log << str_time() << " accept() - " << clients.search(std::to_string(new_klient)).to_string() << "\n";
 }

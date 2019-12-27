@@ -61,6 +61,7 @@ std::string command_line::input(int y)
 			}
 
 			refresh(); // uppdatera fönstret
+			wrefresh(window_.get_window());
 			wrefresh(derived_);
 		}
 		key = 0;
