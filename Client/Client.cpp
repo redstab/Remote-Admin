@@ -64,6 +64,9 @@ int main()
 	std::string ipAddress = "127.0.0.1";			// IP Address of the server
 	int port = 54321;						// Listening port # on the server
 
+	std::locale::global(std::locale("sw"));
+
+
 	WSAData ws;
 	Error wsa = WSAStartup(MAKEWORD(2, 2), &ws);
 	std::cout << "WSAStartup() - " << wsa << std::endl;

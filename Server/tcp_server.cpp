@@ -11,7 +11,7 @@ window_log* tcp_server::get_log_stream()
 	return log;
 }
 
-std::queue<packet>& tcp_server::get_queue()
+std::deque<packet>& tcp_server::get_queue()
 {
 	return packet_queue;
 }
@@ -67,12 +67,10 @@ void tcp_server::run()
 		else {
 			for (auto& klient : clients.get_list()) {
 				if (readable(klient.socket_id)) {
-					if (!packet_queue.empty()) {
-						*log << str_time() << " [ " << std::to_string(klient.socket_id) << " data: " << packet_queue.back().data.substr(0,16) << " id: " << packet_queue.back().id.substr(0, 16) << " ]\n";
-					}
 					packet paket = receive_paket(klient);
 					if (paket.data != "" && paket.id != "") {
-						packet_queue.push(paket);
+						packet_queue.push_back(paket);
+						*log << str_time() << " recv(" << std::to_string(klient.socket_id) << ") - data[" << std::to_string(paket.data.length()) << "], id[" << std::to_string(paket.id.length()) << "]\n";
 					}
 				}
 			}
@@ -120,11 +118,11 @@ std::string tcp_server::receive_bytes(client& klient, int size)
 	std::string data;
 	std::vector<char> buffer(size, '\0'); // skrivbar buffer till recv
 	int bytes_received = recv(klient.socket_id, &buffer.at(0), size, MSG_WAITALL);// använd MSG_WAITALL för att låta recv fylla hela buffern buffer
-	if (bytes_received == size) {
+	if (bytes_received == size) { // det finns någon upper limit på typ 999999999 bytes som kan allokeras till en sträng
 		data += std::string(buffer.begin(), buffer.end()); // konvertera buffern till sträng
 	}
 	else if (bytes_received <= 0) { // user disconnected 
-		*log << "disconnect() - " << klient.to_string() << "\n";
+		*log << str_time() << " disconnect() - [" << std::to_string(klient.socket_id) << "|" << klient.ip_address << "]\n";
 		clients.disconnect_client(klient);
 	}
 	return data;

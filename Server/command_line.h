@@ -12,6 +12,8 @@ public:
 	command_line(window&, point, size, std::string, func_map); // skapa konsolen med ett föräldrar fönster, position, storlek, prompt-meddelande och en funktions map
 	void prompt(); // för att acceptera ett kommando och exekevera om den finns i funk mappen
 	bool alive(); // för att bryta loopen vid tex shutdown 
+	void set_prompt(std::string prompt) { prompt_ = prompt; } // set funktion
+	void set_functions(func_map fm) { external_functions_ = fm; } // set funktion
 	std::string input_str(int); // för att ta emot input: tex cin << s; -> input_str(2);
 	void dö();
 private:

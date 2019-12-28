@@ -34,7 +34,7 @@ public:
 	/// Få åtkomst till paket kön för manipulering av data
 	/// </summary>
 	/// <returns>Paketkön</returns>
-	std::queue<packet>& get_queue();
+	std::deque<packet>& get_queue();
 
 	/// <summary>
 	/// Få åtkomst till klient listan
@@ -73,7 +73,7 @@ protected:
 
 	client_list clients{}; // lista av klienter
 
-	std::queue<packet> packet_queue{}; // denna är en kö eftersom att vi inte bryr oss om random access + [FIFO]
+	std::deque<packet> packet_queue{}; // denna är en kö eftersom att vi inte bryr oss om random access + [FIFO]
 
 	const int listen_port; // denna är const eftersom att det inte finns någon anledning att ändra på en lyssningsport 
 

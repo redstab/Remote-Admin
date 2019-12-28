@@ -23,16 +23,16 @@ void client_list::disconnect_client(client c) // stäng socketen och ta bort klie
 
 void client_list::disconnect_client(std::string in) // sök efter en viss klient med hjälp av en sträng (ip eller namn) och disconnekta den
 {
-	disconnect_client(search(in));
+	disconnect_client(*search(in));
 }
 
 void client_list::disconnect_client(int n) // sök efter en viss klient med hjälp av socket_idet och disconnekta den
 {
-	disconnect_client(search(std::to_string(n)));
+	disconnect_client(*search(std::to_string(n)));
 }
 
 // Formatet på indata strängen bestämer vilken member som ska sökas efter
-client& client_list::search(std::string in)
+client* client_list::search(std::string in)
 {
 	if (std::all_of(in.begin(), in.end(), isdigit)) { // om indatan är bara siffror så är indatan ett socketid
 		return search(&client::socket_id, std::stoi(in)); // sök då efter membern socket_id med indatan
@@ -53,12 +53,12 @@ bool client_list::connected(client c)
 
 bool client_list::connected(std::string s)
 {
-	return connected(search(s));
+	return connected(*search(s));
 }
 
 bool client_list::connected(int i)
 {
-	return connected(search(std::to_string(i)));
+	return connected(*search(std::to_string(i)));
 }
 
 std::vector<client>& client_list::get_list()

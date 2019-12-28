@@ -100,3 +100,18 @@ std::vector<std::string> server::argument_slicer(std::string args)
 	std::istringstream iss(args);
 	return std::vector<std::string>{std::istream_iterator<std::string>(iss), {}};
 }
+
+void server::scroll(window_log& win)
+{
+	int key = 0;
+	while (key != 13) {
+		key = getch();
+		if (key == KEY_UP) {
+			win.scroll(-1);
+		}
+		else if (key == KEY_DOWN) {
+			win.scroll(1);
+		}
+		win.draw_element();
+	}
+}

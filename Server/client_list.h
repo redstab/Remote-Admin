@@ -16,12 +16,19 @@ public:
 	void disconnect_client(int);
 
 	// Sök efter klient på listan
-	template<typename T> client& search(T client::*member, T value) { 
+	template<typename T> client* search(T client::*member, T value) { 
 		// Använd generisk funktion med pekare till statisk member för att kunna söka klienter i listan.
-		return *std::find_if(list.begin(), list.end(), [&](client c) {return c.*member == value; });
+		
+		auto klient = std::find_if(list.begin(), list.end(), [&](client c) {return c.*member == value; });
+		if (klient != list.end()) {
+			return &*klient;
+		}
+		else {
+			return nullptr;
+		}
 	}
 
-	client& search(std::string);
+	client* search(std::string);
 
 	// Om klienten fortfarande är ansluten
 	bool connected(client);
