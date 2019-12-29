@@ -22,7 +22,6 @@ bool tcp_client::connect()
 {
 	server_socket = socket(AF_INET, SOCK_STREAM, 0);
 	Error socket_error = server_socket;
-	std::cout << "socket() - " << socket_error << std::endl;
 	if (socket_error) {
 		return false;
 	}
@@ -33,12 +32,9 @@ bool tcp_client::connect()
 	inet_pton(AF_INET, ip_.c_str(), &hint.sin_addr);
 
 	Error connect_error = ::connect(server_socket, (sockaddr*)&hint, sizeof(hint));
-	std::cout << "connect() - " << connect_error << std::endl;
 	if (connect_error)
 	{
-		std::cout << "retrying in 3 sec" << std::endl;
 		closesocket(server_socket);
-		Sleep(3000);
 		return false;
 	}
 
@@ -50,16 +46,15 @@ bool tcp_client::connect()
 void tcp_client::paket_loop()
 {
 	while (alive) {
-		if (readable(server_socket)) {
+		if (readable(server_socket)) { // om servern har skickat något
 			packet new_packet = receive_packet();
-			if (!new_packet.id.empty() && !new_packet.data.empty()) {
+			if (!new_packet.id.empty() && !new_packet.data.empty()) { // om paketet inte är tomt
 				std::cout << "recv()[" << new_packet.id << "|" << new_packet.data << "] - " << Error(0) << std::endl;
-				handle_packet(new_packet);
+				handle_packet(new_packet); // hantera beroende på hash tabeller
 			}
-			else {
-				std::cout << "recv() - " << Error(-1, "paketet är tomt") << " | " << new_packet.id << new_packet.data << std::endl;
-			}
-
+			//else {
+			//	std::cout << "recv() - " << Error(-1, "paketet är tomt") << std::endl;
+			//}
 		}
 	}
 }

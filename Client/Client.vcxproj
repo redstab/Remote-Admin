@@ -147,14 +147,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Client.cpp" />
+    <ClCompile Include="client.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="error.cpp" />
+    <ClCompile Include="process.cpp" />
     <ClCompile Include="tcp_client.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="client.h" />
+    <ClInclude Include="computer-information.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="message.h" />
     <ClInclude Include="precompile.h" />
+    <ClInclude Include="process.h" />
     <ClInclude Include="tcp_client.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
