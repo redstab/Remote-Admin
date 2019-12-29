@@ -28,4 +28,3 @@ private:
 	bool map_exist_execute(func_map, std::string, std::string);
 	std::pair<std::string, std::string> split_input(std::string); // splita input mellan första ' '
 };
-

@@ -110,6 +110,37 @@ private:
 			attached = nullptr;
 			console.set_prompt(default_prompt);
 			console.set_functions(server_commands);
+		}},
+
+		{"send", [&](std::string args) {
+
+			message msg;
+			msg.identifier = args;
+			msg.data = ":>";
+
+			if (send(*attached, msg)) {
+				console  << args  << "->" << attached->name << "\n";
+
+				packet paket;
+				bool found = false;
+				while (!found) {
+					for (auto& p : packet_queue) {
+						if (p.id == "response|" + args && p.owner == attached) {
+							paket = p;
+							found = true;
+						}
+					}
+				}
+
+				// found proper response
+
+				console << attached->name << " -> [(" << paket.id << ")|(" << paket.data << ")]\n";
+
+			}
+			else {
+				console << "Could not send request " << args << "\n";
+			}
+
 		}}
 	};
 

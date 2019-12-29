@@ -61,16 +61,16 @@ void tcp_server::listen()
 void tcp_server::run()
 {
 	while (alive) {
-		if (readable(listen_socket)) {
+		if (readable(listen_socket)) { // om det är en ny klient
 			accept_user();
 		}
 		else {
-			for (auto& klient : clients.get_list()) {
-				if (readable(klient.socket_id)) {
-					packet paket = receive_paket(klient);
-					if (paket.data != "" && paket.id != "") {
-						packet_queue.push_back(paket);
-						*log << str_time() << " recv(" << std::to_string(klient.socket_id) << ") - data[" << std::to_string(paket.data.length()) << "], id[" << std::to_string(paket.id.length()) << "]\n";
+			for (auto& klient : clients.get_list()) { // gå igenom alla klienter och titta om dem har paket till servern
+				if (readable(klient.socket_id)) { // om klienten har paket
+					packet paket = receive_paket(klient); // ta emot
+					if (paket.data != "" && paket.id != "") { // titta efter error
+						packet_queue.push_back(paket); // lägg till i kön 
+						*log << str_time() << " recv(" << std::to_string(klient.socket_id) << ") - data[" << std::to_string(paket.data.length()) << "], id[" << std::to_string(paket.id.length()) << "]\n"; // logga motag
 					}
 				}
 			}
@@ -99,15 +99,10 @@ packet tcp_server::receive_paket(client& klient)
 	packet paket;
 	header huvud = receive_header(klient); // ta emot headern 
 
-	if (huvud.data_size > 0 && huvud.id_size > 0) {
-		::send(klient.socket_id, "1", 1, 0); // signalera att headern blev emottagen och att man ska skicka datan och idet
+	if (huvud.data_size > 0 && huvud.id_size > 0) { // om inte error
 		paket.id = receive_bytes(klient, huvud.id_size); // ta emot id
 		paket.data = receive_bytes(klient, huvud.data_size); // ta emot data
 		paket.owner = &klient; // specifiera vem som äger paketet
-	}
-	else {
-		//*log << std::to_string(huvud.data_size) << " " << std::to_string(huvud.id_size) << "\n";
-		::send(klient.socket_id, "0", 1, 0); // signalera att header hade error och att man inte ska skicka datan och idet, oftast sker detta vid buffer overflow eller när klienten disconnectar
 	}
 
 	return paket;

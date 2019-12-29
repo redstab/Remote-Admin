@@ -61,8 +61,8 @@ struct message {
 	std::string buffer() { // använt för att seriliza message strukturten till en sträng för att kunna överföra den via send
 		std::stringstream ss;
 		ss
-			<< std::string(16 - identifier.length(), '0') << identifier.length()
-			<< std::string(16 - data.length(), '0') << data.length()
+			<< std::string(16 - std::to_string(identifier.length()).length(), '0') << identifier.length()
+			<< std::string(16 - std::to_string(data.length()).length(), '0') << data.length()
 			<< identifier
 			<< data;
 
