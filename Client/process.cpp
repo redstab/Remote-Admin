@@ -108,11 +108,7 @@ bool console_process::alive()
 	return WaitForSingleObject(process_info.hProcess, process_properties.timeout) == WAIT_TIMEOUT;
 }
 
-
-
-
 bool console_process::open_pipe(HANDLE& read, HANDLE& write)
 {
 	return CreatePipe(&read, &write, &security_attrib, 0);
 }
-

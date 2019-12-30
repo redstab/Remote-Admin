@@ -20,7 +20,7 @@ tcp_client::tcp_client(std::string ip, int port)
 
 bool tcp_client::connect()
 {
-	server_socket = socket(AF_INET, SOCK_STREAM, 0);
+	server_socket = socket(AF_INET, SOCK_STREAM, 0); // skapa socket
 	Error socket_error = server_socket;
 	if (socket_error) {
 		return false;
@@ -28,13 +28,13 @@ bool tcp_client::connect()
 
 	sockaddr_in hint;
 	hint.sin_family = AF_INET;
-	hint.sin_port = htons(port_);
-	inet_pton(AF_INET, ip_.c_str(), &hint.sin_addr);
+	hint.sin_port = htons(port_); // sätt port
+	inet_pton(AF_INET, ip_.c_str(), &hint.sin_addr); // konvertera ip till sockaddr
 
-	Error connect_error = ::connect(server_socket, (sockaddr*)&hint, sizeof(hint));
+	Error connect_error = ::connect(server_socket, (sockaddr*)&hint, sizeof(hint)); // försök ansluta
 	if (connect_error)
 	{
-		closesocket(server_socket);
+		closesocket(server_socket); // stäng socket mo misslyckad anslutning
 		return false;
 	}
 
@@ -52,9 +52,6 @@ void tcp_client::paket_loop()
 				std::cout << "recv()[" << new_packet.id << "|" << new_packet.data << "] - " << Error(0) << std::endl;
 				handle_packet(new_packet); // hantera beroende på hash tabeller
 			}
-			//else {
-			//	std::cout << "recv() - " << Error(-1, "paketet är tomt") << std::endl;
-			//}
 		}
 	}
 }
@@ -69,6 +66,7 @@ bool tcp_client::is_ip(std::string victim)
 
 std::string tcp_client::dns2string(std::string dns)
 {
+	// För att konvertera dns(google.com) till en ip address (129.291.21.1)
 	// anta wsa är startad
 	addrinfo* result{};
 	addrinfo hints{};
@@ -173,18 +171,18 @@ void tcp_client::handle_packet(packet paket)
 	std::string id = paket.id;
 	std::string data = paket.data;
 
-	if (response_map.count(id)) {
-		message msg;
+	if (response_map.count(id)) { // om paket idet finns i pesponse tabellen
+		message msg; // skapa nytt meddelande med tabellvärdet
 		msg.identifier = "response|" + id;
 		msg.data = response_map[id](data);
 		std::cout << "send()[" << msg.buffer() << "] -> " << Error(0) << std::endl;
-		send(msg);
+		send(msg); // skicka respons
 	}
-	else if (action_map.count(id)) {
-		action_map[id](data);
+	else if (action_map.count(id)) { // om pakete idet finns i action tabbellen
+		action_map[id](data); // aktivera funktionen förbinden med idet 
 	}
-	else {
-		std::cout << " handle_packet()" << " [ " << paket.id << "|" << paket.data << "]" << " - " << Error(-2, "kan inte hantera paket") << std::endl;
+	else { // annars error
+		std::cout << "handle_packet()" << " [ " << paket.id << "|" << paket.data << "]" << " - " << Error(-2, "kan inte hantera paket") << std::endl; 
 	}
 
 }

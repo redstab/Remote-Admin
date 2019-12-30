@@ -53,5 +53,8 @@
     <ClInclude Include="computer-information.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="payloads.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

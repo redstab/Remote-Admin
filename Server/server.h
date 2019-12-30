@@ -115,31 +115,41 @@ private:
 		{"send", [&](std::string args) {
 
 			message msg;
-			msg.identifier = args;
-			msg.data = ":>";
+			auto found = args.find_first_of(' ');
+			if (found != std::string::npos) {
+				msg.identifier = args.substr(0, found);
+				msg.data = args.substr(found+1);
+			}
+			else {
+				msg.identifier = args;
+				msg.data = ":>";
+			}
 
 			if (send(*attached, msg)) {
-				console  << args  << "->" << attached->name << "\n";
+				console  << msg.identifier << "(" << msg.data << ") ->" << attached->name << "\n";
 
 				packet paket;
 				bool found = false;
 				while (!found) {
 					for (auto& p : packet_queue) {
-						if (p.id == "response|" + args && p.owner == attached) {
+						if (p.id == "response|" + msg.identifier && p.owner == attached) {
 							paket = p;
 							found = true;
 						}
 					}
 				}
-
 				// found proper response
 
 				console << attached->name << " -> [(" << paket.id << ")|(" << paket.data << ")]\n";
+				
+				//remove paket
+				packet_queue.erase(std::remove(packet_queue.begin(), packet_queue.end(), paket), packet_queue.end());
 
 			}
 			else {
 				console << "Could not send request " << args << "\n";
 			}
+
 
 		}}
 	};

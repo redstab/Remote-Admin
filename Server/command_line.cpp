@@ -37,26 +37,36 @@ std::string command_line::input_str(int)
 std::string command_line::input(int y)
 {
 	std::string input_ = ""; // buffer för inputen
-
 	int key = 0;
-	int count = 0; // för att hålla koll så att vi inte skriver för långt
-	int length_ = max_size_.x - prompt_.length(); // längden som man för skriva på. Den är längden av hela konsolen minus prompten tex "server $ "
-
+	int count = 0; // för att hålla koll så att vi inte skriver för mycket
+	int line_length = max_size_.x; // max längden per linje 
+	int remaining_chars = max_char_count_ - (y * line_length) - prompt_.length();
+	int line_count = prompt_.length(); // för att hålla koll så att vi uppdaterar y när man har skrivit hela raden, startar på prompt_.length för att kompensera för prompt meddelandet
 	while (input_ == "") { // medans outputen är tom
 		while (key != 13) { // medans key inte är enter
 
 			key = getch();
 
-			if (key >= 32 and key <= 126 and count < length_ and (cursor_ + max_size_.y) >(data_.length() / max_lenght_)) { // if alnum + cannot type if scrolling 
+			if (key >= 32 and key <= 126 and count < remaining_chars and (cursor_ + max_size_.y) >(data_.length() / max_lenght_)) { // if alnum + cannot type if scrolling 
 				input_.push_back(key); // lägg till en karaktär i buffern 
-				mvwprintw(derived_, y, position_.x + count + prompt_.length() - 1, std::string(1, key).c_str()); // lägg grafiskt till en karaktär
+				mvwprintw(derived_, y, position_.x + line_count - 1, std::string(1, key).c_str()); // lägg grafiskt till en karaktär
 				++count;
+				++line_count;
+				if (line_count >= line_length) { // när man har skrivit hela buffern så måste man uppdatera y värdet
+					y += 1;
+					line_count = 0;
+				}
 			}
 
 			else if ((key == key == 127 or key == '\b' or key == KEY_BACKSPACE) and count > 0 and (cursor_ + max_size_.y) > (data_.length() / max_lenght_)) { // if backspace + cannot type if scrolling
-				mvwprintw(derived_, y, position_.x + prompt_.length() + count - 2, " "); // ta grafiskt bort sista karaktären
+				mvwprintw(derived_, y, position_.x + line_count - 2, " "); // ta grafiskt bort sista karaktären
 				input_.pop_back(); // ta bort sista karaktären i buffern
-				--count; // minska räknaren
+				--count;
+				--line_count;
+				if (line_count < 1 && count > 0) { // när man tar bort sista karaktären på linjen så minskas y för att man flyttas upp
+					line_count = line_length;
+					y -= 1;
+				}
 			}
 
 			else if (key == KEY_PPAGE) { // if pageup => scroll up

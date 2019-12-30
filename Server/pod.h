@@ -51,6 +51,13 @@ struct packet {
 	std::string id;
 	std::string data;
 	client* owner;
+
+	bool operator==(const packet& that) const { // vid jämnförelse av olika paket
+		return
+			id == that.id &&
+			data == that.data &&
+			*owner == *that.owner;
+	}
 };
 
 // struktur vid skickning av en data eller ett meddelande

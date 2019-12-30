@@ -158,6 +158,7 @@
     <ClInclude Include="computer-information.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="message.h" />
+    <ClInclude Include="payloads.h" />
     <ClInclude Include="precompile.h" />
     <ClInclude Include="process.h" />
     <ClInclude Include="tcp_client.h" />
