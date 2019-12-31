@@ -50,9 +50,6 @@
     <ClInclude Include="client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="computer-information.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="payloads.h">
       <Filter>Header Files</Filter>
     </ClInclude>

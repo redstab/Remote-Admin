@@ -17,8 +17,10 @@ void client_list::add_client(int sock, std::string ip) // skapa en klient från s
 
 void client_list::disconnect_client(client c) // stäng socketen och ta bort klienten från vektorn med erase-remove ideom
 {
-	closesocket(c.socket_id);
-	list.erase(std::remove(list.begin(), list.end(), c), list.end()); // erase-remove för säker bortagning av element
+	if (connected(c)) {
+		closesocket(c.socket_id);
+		list.erase(std::remove(list.begin(), list.end(), c), list.end()); // erase-remove för säker bortagning av element
+	}
 }
 
 void client_list::disconnect_client(std::string in) // sök efter en viss klient med hjälp av en sträng (ip eller namn) och disconnekta den
@@ -37,7 +39,7 @@ client* client_list::search(std::string in)
 	if (std::all_of(in.begin(), in.end(), isdigit)) { // om indatan är bara siffror så är indatan ett socketid
 		return search(&client::socket_id, std::stoi(in)); // sök då efter membern socket_id med indatan
 	}
-	else if (in.size() == 15 && std::all_of(in.begin(), in.end(), [&](char c) {return isdigit(c) || c == '.'; })) { // om indatan är 15 bytes lång och innehåller endast siffor och punkter så är det en ip_address
+	else if (in.size() >= 7 && std::all_of(in.begin(), in.end(), [&](char c) {return isdigit(c) || c == '.'; })) { // om indatan är 15 bytes lång och innehåller endast siffor och punkter så är det en ip_address
 		return search(&client::ip_address, in); // sök då efter membern ip_address med indatan
 	}
 	else {
@@ -46,7 +48,7 @@ client* client_list::search(std::string in)
 }
 
 // verifera om klienten är ansluten(om den finns i vektorn så är den ansluten)
-bool client_list::connected(client c) 
+bool client_list::connected(client c)
 {
 	return std::count(list.begin(), list.end(), c);
 }

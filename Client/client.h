@@ -2,6 +2,9 @@
 #include "tcp_client.h"
 #include "process.h"
 
+/// <summary>
+/// Container class för att få tcp_clienten att alltid försöka ansluta när den förlorar sin anslutning, detta görs via disconnect_function som om initializerar tcp_clienten och anluter igen
+/// </summary>
 class client
 {
 public:
