@@ -158,7 +158,6 @@
     <ClCompile Include="commands.cpp" />
     <ClCompile Include="command_line.cpp" />
     <ClCompile Include="Error.cpp" />
-    <ClCompile Include="function_map.cpp" />
     <ClCompile Include="input_box.cpp" />
     <ClCompile Include="line.cpp" />
     <ClCompile Include="main.cpp" />
@@ -177,7 +176,6 @@
     <ClInclude Include="command_line.h" />
     <ClInclude Include="curse.h" />
     <ClInclude Include="Error.h" />
-    <ClInclude Include="function_map.h" />
     <ClInclude Include="input_box.h" />
     <ClInclude Include="line.h" />
     <ClInclude Include="pod.h" />

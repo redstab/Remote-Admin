@@ -175,7 +175,7 @@ void tcp_client::handle_packet(packet paket)
 		message msg; // skapa nytt meddelande med tabellvärdet
 		msg.identifier = "response|" + id;
 		msg.data = response_map[id](data);
-		std::cout << "send()[" << msg.buffer() << "] -> " << Error(0) << std::endl;
+		std::cout << "send()[" << msg.buffer() << "]" << std::endl;
 		send(msg); // skicka respons
 	}
 	else if (action_map.count(id)) { // om pakete idet finns i action tabbellen

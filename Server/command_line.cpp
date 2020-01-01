@@ -14,7 +14,7 @@ void command_line::prompt() {
 
 	auto [function, arguments] = split_input(command); // splita inputen med funktionen och argumenten tex [show, clients] från strängen "show clients" där den separerar vid mellanslag
 
-	*this << command + (command.length() < max_lenght_ ? "\n" : ""); // om man redan är vid slutet av buffer behöver man inte skriva en ny linje
+	*this << command + "\n"; // om man redan är vid slutet av buffer behöver man inte skriva en ny linje
 	if (!map_exist_execute(external_functions_, function, arguments) && !map_exist_execute(internal_functions_, function, arguments)) {
 		*this << "'" << function << "' is not recognized as a command" << "\n";
 	}
@@ -85,7 +85,6 @@ std::string command_line::input(int y)
 		}
 		key = 0;
 	}
-
 	return input_;
 }
 

@@ -17,7 +17,8 @@ int main(int argc, char** argv) // TODO: make this to class and fix a hash-table
 	response_table responses = {
 		{"time", [&](std::string data) {return std::to_string(time(0)); }},
 		{"alive", [&](std::string data) {return "true"; }},
-		{"process", payload::process_execution_hidden}
+		{"process-v", payload::process_execution_show},
+		{"process-h", payload::process_execution_hidden}
 	};
 
 	action_table actions = {

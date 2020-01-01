@@ -115,3 +115,16 @@ void server::scroll(window_log& win)
 		win.draw_element();
 	}
 }
+
+packet server::wait_response(std::string id, client* owner)
+{
+	bool found = false;
+	while (!found) {
+		for (auto c : packet_queue) {
+			if (c.id == id && c.owner == owner) {
+				found = true;
+				return c;
+			}
+		}
+	}
+}

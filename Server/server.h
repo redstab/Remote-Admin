@@ -4,7 +4,6 @@
 #include "command_line.h"
 #include "tcp_server.h"
 #include "title.h"
-#include "function_map.h"
 #include "wireframe.h"
 
 class server :
@@ -18,7 +17,7 @@ public:
 
 	void cli_loop(); // loop för att ta emot kommandon
 
-	// ärvda från ui_element
+	// virituella funktioner ärvda från ui_element
 	size get_element_size() const;
 	void draw_element();
 
@@ -135,7 +134,7 @@ private:
 				}
 			}, args, "disconnect");
 		}},
-		
+
 		{"disconnect", [&](std::string args) {
 			argument_parser([&](std::string value) {
 				client* klient = clients.search(args);
@@ -160,10 +159,42 @@ private:
 	};
 
 	func_map client_commands = {
+
 		{"detach", [&](std::string args) {
 			attached = nullptr;
 			console.set_prompt(default_prompt);
 			console.set_functions(server_commands);
+		}},
+
+		{"process", [&](std::string args) {
+			auto found = args.find_first_of(' ');
+			message msg;
+			msg.identifier = "process-v";
+			if (found != std::string::npos) {
+				msg.data = args.substr(found + 1);
+				if (args.substr(0, found) == "hidden") {
+					msg.identifier = "process-h";
+				}
+				else if (args.substr(0, found) == "visible") {
+					msg.identifier = "process-v";
+				}
+			}
+			else {
+				msg.data = args;
+			}
+			if (send(*attached, msg)) {
+				console << "Executing " << args;
+				packet response = wait_response("response|" + msg.identifier, attached);
+				if (response.data == "SUCCESS") {
+					console << " -> Success\n";
+				}
+				else {
+					console << " -> Error[" << response.data << "]\n";
+				}
+			}
+			else {
+				console << "Could not send request " << args << "\n";
+			}
 		}},
 
 		{"send", [&](std::string args) {
@@ -176,22 +207,13 @@ private:
 			}
 			else {
 				msg.identifier = args;
-				msg.data = ":>";
+				msg.data = " ";
 			}
 
 			if (send(*attached, msg)) {
 				console << msg.identifier << "(" << msg.data << ") ->" << attached->name << "\n";
 
-				packet paket;
-				bool found = false;
-				while (!found) {
-					for (auto& p : packet_queue) {
-						if (p.id == "response|" + msg.identifier && p.owner == attached) {
-							paket = p;
-							found = true;
-						}
-					}
-				}
+				packet paket = wait_response("response|" + msg.identifier, attached);
 				// found proper response
 
 				console << attached->name << " -> [(" << paket.id << ")|(" << paket.data << ")]\n";
@@ -224,5 +246,5 @@ private:
 
 	void scroll(window_log&); // använd för att skrolla fönstren
 
-	friend class function_map<func_map, server>;
+	packet wait_response(std::string id, client* owner);
 };

