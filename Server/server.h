@@ -36,7 +36,7 @@ private:
 		{"detach", "detaches from a client to interact with the server instead\n"},
 		{"reconnect", "reconnects the attached client\n"},
 		{"disconnect", "disconnects the attached client\n"},
-		{"process", "executes a process on klient\n\n  process [-h][-v] [program]\n\n   -h : hidden\n   -v : visible\n   program : fullpath to executable\n"}
+		{"process", "executes a process on klient\n\n  process [-h]|[-v] [path]|[-p]\n\n   -h : hidden\n   -v : visible\n   -p : pick executable\n   path : fullpath to executable\n"}
 	};
 
 	func_map get_server_commands();
@@ -65,4 +65,9 @@ private:
 	void scroll(window_log&); // använd för att skrolla fönstren
 
 	packet wait_response(std::string id, client* owner); // väntar tills en respons från klienten finns i packet_queue
+
+	int pick_template(int max_elements, int top_offset, size max_size, std::function<void(int, int)> print_func, std::function<void()> disc_func);
+
+	bool pick_file_attached(std::filesystem::path root, std::string& buffer); // för att välja en fil
+	bool pick_client(client& buffer); // för att välja en fil
 };

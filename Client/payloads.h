@@ -5,8 +5,11 @@
 
 namespace helper {
 	void send_directory(tcp_client c, std::vector<dir_item> items) {
+		c.send({ "dir_status", std::to_string(items.size()) });
 		for (auto [item, size] : items) {
-			c.send({ "filedescription", item.string() + "|" + std::to_string(size) });
+			message msg{ "filedescription", item.string() + "|" + std::to_string(size) };
+			c.send(msg);
+			std::cout << "send()[" << msg.buffer() << "] - " << Error(0)<< std::endl;
 		}
 	}
 	std::pair<std::string, std::string> ArgSplit(std::string args) {

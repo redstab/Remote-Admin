@@ -13,6 +13,7 @@
 #include <sstream>
 #include "curses.h"
 #include <thread>
+#include <system_error>
 #include <chrono>
 #include <fstream>
 #include <iomanip>

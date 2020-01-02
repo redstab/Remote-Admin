@@ -21,6 +21,18 @@ func_map server::get_client_commands()
 
 				// parsa input args för att ta reda på om man vill att processen ska vara synlig eller inte
 				auto [arg1, arg2] = utility::ArgSplit(args, ' ');
+				
+				std::string file;
+				if (arg1 == "-p" || arg2 == "-p") { // om användaren vill välja fil
+					if (pick_file_attached("C:\\", file)) {
+						console << "Picked ->" << file << "\n";
+					}
+					else {
+						console << "Aborted\n";
+						return;
+					}
+				}
+
 				if (arg1 == "-v" || arg1 == "-h") { // om användaren specifierade synlighet argumentet
 					msg.identifier = "process" + arg1;
 					msg.data = arg2;
@@ -28,6 +40,13 @@ func_map server::get_client_commands()
 				else { // om användaren inte gjorde det
 					msg.identifier = "process-v";
 					msg.data = args;
+				}
+
+				if (!file.empty()) {
+					msg.data = file;
+				}
+				else {
+					msg.data = arg2;
 				}
 
 				if (send(*attached, msg)) { // skicka förfrågan 
@@ -38,7 +57,7 @@ func_map server::get_client_commands()
 						console << " -> Success\n";
 					}
 					else { // kunde inte skapa processen
-						console << " -> Error[" << response.data << "]\n";
+						console << " -> Error[" << std::error_code(std::stoi(response.data), std::system_category()).message() << "]\n";
 					}
 					delete_packet(response);
 				}
@@ -59,52 +78,39 @@ func_map server::get_client_commands()
 		{"download", [&](std::string args) {
 			argument_parser([&](std::string value) {
 				message msg{"download", ""};
-				if (!args.empty()) {
-					msg.identifier = args;
-				}
-				else { // Select 
-					if (send(*attached, {"select", "C:\\"})) {
-						WINDOW* der = console.get_derived();
-						size max_size = console.get_element_size();
-						console.clear_element();
-						refresh();
-						wrefresh(window_.get_window());
-						wrefresh(der);
-
-						std::vector<std::pair<std::filesystem::path, int>> items;
-						packet status = wait_response("dir_status", attached);
-						int amount = std::stoi(status.data);
-						//console << "amount: " << std::to_string(amount) << "\n";
-						for (int i = 0; i < amount; i++)
-						{
-							packet file = wait_response("filedescription", attached);
-							if (file.id == "filedescription" && file.owner == attached) {
-								auto [path, size] = utility::ArgSplit(file.data, '|');
-								items.push_back({ path, std::stoi(size) });
-							}
-							delete_packet(file);
-						}
-
-						mvwprintw(der, 0, 0, items[1].first.parent_path().string().c_str());
-
-						for (int i = 0; i < max_size.y-1; i++) {
-							mvwprintw(der, i+1, 0, items[i].first.filename().string().c_str());
-						}
-						refresh();
-						wrefresh(window_.get_window());
-						wrefresh(der);
-						getch();
+				if (!args.empty() && args == "-p") {  // Select file
+					std::string buffer;
+					if (pick_file_attached("C:\\", buffer)) {
+						console << "Picked ->" << buffer << "\n";
+						msg.data = buffer;
+					}
+					else {
+						console << "Aborted\n";
+						return;
 					}
 				}
+				else if (!args.empty()) {
+					msg.data = args;
+				}
+				else {
+					console << "The syntax of the command is incorrect. try -h\n";
+					return;
+				}
+
 				if (send(*attached, msg)) { // skicka förfrågan 
-					console << "Downloading " << msg.data;
+					console << "Downloading " << msg.data << "\n";
 					packet response = wait_response("response|" + msg.identifier, attached);
 					if (response.data != "FAIL") {
-						std::filesystem::path fs = args;
-						std::ofstream file(std::filesystem::current_path().string() + "\\" + fs.filename().string(), std::ios::binary);
+						std::filesystem::path fs = msg.data;
+						if (!std::filesystem::is_directory("Downloads_" + attached->name) || std::filesystem::exists("Downloads_" + attached->name)) {
+							std::filesystem::create_directory("Downloads_" + attached->name);
+						}
+						std::string filename = std::filesystem::current_path().string() + "\\Downloads_" + attached->name + "\\" + fs.filename().string();
+						console << "Wrote -> " << filename << "\n";
+						std::ofstream file(filename, std::ios::binary);
 						file << response.data;
 						file.close();
-						console << " -> Done\n";
+						console << "Transfer -> Done\n";
 					}
 					else {
 						console << " -> No such file\n";

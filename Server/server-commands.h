@@ -11,11 +11,16 @@ func_map server::get_server_commands()
 			argument_handler({
 
 				{"clients", [&](std::string value) {
-					console << "{\n";
-					for (auto c : clients.get_list()) {
-						console << "  " << c.to_string() << "\n";
+					if (!clients.get_list().empty()) {
+						console << "{\n";
+						for (auto c : clients.get_list()) {
+							console << "  " << c.to_string() << "\n";
+						}
+						console << "}\n";
 					}
-					console << "}\n";
+					else {
+						console << "There are no clients connected to the server!\n";
+					}
 				}},
 
 				{"time", [&](std::string value) {
@@ -67,7 +72,20 @@ func_map server::get_server_commands()
 
 		{ "attach", [&](std::string args) {
 			argument_parser([&](std::string value) {
-				client* klient = clients.search(args);
+				client* klient;
+				if (args == "-p") {
+					if (pick_file_attached("C:\\", file)) {
+						console << "Picked ->" << file << "\n";
+					}
+					else {
+						console << "Aborted\n";
+						return;
+					}
+				}
+				else {
+					klient = clients.search(args);
+				}
+
 				if (klient != nullptr) { // found
 					attached = klient;
 					console.set_prompt(attached->name + " $ ");
