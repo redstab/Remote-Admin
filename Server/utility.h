@@ -55,7 +55,7 @@ namespace utility {
 			return a.socket_id < b.socket_id;
 		})->socket_id).length() + 2; // hitta max längd på socket_id
 
-		int top_pad = 2;
+		int top_pad = 1;
 		std::string format = "%-*d%-*s%*s"; // socket_id namn         ip
 
 		for (int i = offset; i < max_size.y - top_pad + offset; i++) {
@@ -63,7 +63,7 @@ namespace utility {
 				wattron(win, A_REVERSE);
 			}
 			if (i < items.size()) {
-				mvwprintw(win, i + top_pad - offset, 0, format.c_str(), max_id, items[i].socket_id, max_name, items[i].name, (max_size.x - max_id - max_name), items[i].ip_address);
+				mvwprintw(win, i + top_pad - offset, 0, format.c_str(), max_id, items[i].socket_id, max_name, items[i].name.c_str(), (max_size.x - max_id - max_name), items[i].ip_address.c_str());
 			}
 			else {
 				mvwprintw(win, i + top_pad - offset, 0, std::string(max_size.x, ' ').c_str());

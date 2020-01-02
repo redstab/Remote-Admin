@@ -28,15 +28,16 @@ private:
 		{"show","shows properties about the server.\n\n show [property][-h]\n\n  properties:\n   clients\n   time\n   info\n"},
 		{"shutdown", "shuts down the server or [aborts]\n"},
 		{"scroll", "scrolls a window up or down\n\n  scroll <command|log> \n\n  scroll-up: arrow_up\n  scroll-down: arrow_down\n  scroll-done: enter\n"},
-		{"attach", "attaches to a client to interact with it \n\n  attach [name|ip|id]\n"},
-		{"reconnect", "reconnect a specific client\n\n  reconnect [name|id|ip|<all>]\n"},
-		{"disconnect", "disconnect a specific client \n\n  disconnect [name|id|ip|<all>]\n"}
+		{"attach", "attaches to a client to interact with it \n\n  attach [name|ip|id]|[-p]\n   -p : pick client\n"},
+		{"reconnect", "reconnect a specific client\n\n  reconnect [name|id|ip|<all>]|-p\n   -p : pick client\n"},
+		{"disconnect", "disconnect a specific client \n\n  disconnect [name|id|ip|<all>]|-p\n   -p : pick client\n"}
 	};
 	std::unordered_map<std::string, std::string> klient_help = { // dictionary för att hantera hjälpen till klient kommandon
 		{"detach", "detaches from a client to interact with the server instead\n"},
 		{"reconnect", "reconnects the attached client\n"},
 		{"disconnect", "disconnects the attached client\n"},
-		{"process", "executes a process on klient\n\n  process [-h]|[-v] [path]|[-p]\n\n   -h : hidden\n   -v : visible\n   -p : pick executable\n   path : fullpath to executable\n"}
+		{"process", "executes a process on klient\n\n  process [-h]|[-v] [path]|[-p]\n\n   -h : hidden\n   -v : visible\n   -p : gui pick executable\n   path : fullpath to executable\n"},
+		{"download", "downloads a file from the attached client\n\n  download [path]|[-p]\n\n   path : path to file\n   -p : pick path\n"}
 	};
 
 	func_map get_server_commands();
@@ -69,5 +70,5 @@ private:
 	int pick_template(int max_elements, int top_offset, size max_size, std::function<void(int, int)> print_func, std::function<void()> disc_func);
 
 	bool pick_file_attached(std::filesystem::path root, std::string& buffer); // för att välja en fil
-	bool pick_client(client& buffer); // för att välja en fil
+	bool pick_client(client*& buffer); // för att välja en fil
 };

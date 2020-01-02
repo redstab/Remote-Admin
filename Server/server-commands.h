@@ -4,8 +4,8 @@
 
 func_map server::get_server_commands()
 {
-	return { 
-		
+	return {
+
 		{ "show", [&](std::string args) {
 
 			argument_handler({
@@ -72,10 +72,10 @@ func_map server::get_server_commands()
 
 		{ "attach", [&](std::string args) {
 			argument_parser([&](std::string value) {
-				client* klient;
+				client* klient = nullptr;
 				if (args == "-p") {
-					if (pick_file_attached("C:\\", file)) {
-						console << "Picked ->" << file << "\n";
+					if (pick_client(klient)) {
+						console << "Picked ->" << klient->to_string() << "\n";
 					}
 					else {
 						console << "Aborted\n";
@@ -99,7 +99,19 @@ func_map server::get_server_commands()
 
 		{ "reconnect", [&](std::string args) {
 			argument_parser([&](std::string value) {
-				client* klient = clients.search(args);
+				client* klient = nullptr;
+				if (args == "-p") {
+					if (pick_client(klient)) {
+						console << "Picked ->" << klient->to_string() << "\n";
+					}
+					else {
+						console << "Aborted\n";
+						return;
+					}
+				}
+				else {
+					klient = clients.search(args);
+				}
 				if (klient != nullptr) { // found
 					clients.disconnect_client(*klient);
 					console << "Successfully disconnected client\n";
@@ -120,7 +132,20 @@ func_map server::get_server_commands()
 
 		{ "disconnect", [&](std::string args) {
 			argument_parser([&](std::string value) {
-				client* klient = clients.search(args);
+				client* klient = nullptr;
+				if (args == "-p") {
+					if (pick_client(klient)) {
+						console << "Picked ->" << klient->to_string() << "\n";
+					}
+					else {
+						console << "Aborted\n";
+						return;
+					}
+				}
+				else {
+					klient = clients.search(args);
+				}
+
 				if (klient != nullptr) { // found
 					send(*klient, { "exit", " " });
 					clients.disconnect_client(*klient);
@@ -138,5 +163,5 @@ func_map server::get_server_commands()
 				}
 			}, args, "disconnect");
 		} }
-	 };
+	};
 }
