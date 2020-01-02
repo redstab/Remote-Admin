@@ -57,9 +57,6 @@
     <ClCompile Include="wireframe.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="commands.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Error.h">
@@ -113,7 +110,13 @@
     <ClInclude Include="wireframe.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="commands.h">
+    <ClInclude Include="client-commands.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="server-commands.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

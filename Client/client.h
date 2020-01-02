@@ -1,4 +1,5 @@
 #pragma once
+#include "precompile.h"
 #include "tcp_client.h"
 #include "process.h"
 
@@ -8,7 +9,7 @@
 class client
 {
 public:
-	client(std::string ip, int port, response_table responses, action_table actions);
+	client(std::string ip, int port);
 
 	/// <summary>
 	/// Garanterar att anslutning lyckas slutligen.
@@ -28,8 +29,12 @@ private:
 
 	tcp_client client_implentation;
 
-	response_table responses_;
-	action_table actions_;
+	response_table get_responses();
+	action_table get_actions();
+
+	response_table responses_ = get_responses();
+
+	action_table actions_ = get_actions();
 
 	/// <summary>
 	/// Funktionen kallas när klienten anslutnings avbryts och när den ska skapas

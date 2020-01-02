@@ -47,10 +47,23 @@ public:
 	void set_responses(response_table rt) { response_map = rt; }
 	void set_actions(action_table at) { action_map = at; }
 
+	/// <summary>
+	/// Skicka ett message till servern
+	/// </summary>
+	/// <param name="meddelande">meddelande att skicka</param>
+	/// <returns>True: inga errors, False: send error</returns>
+	bool send(message);
+
+	/// <summary>
+	/// Ta emot ett psuedo tcp paket 
+	/// Private eftersom att man får manipulera packet_queuen istället. 
+	/// </summary>
+	packet receive_packet();
+
 private:
 
 	bool alive;
-	
+
 	// "hash" tabeller för inkommande paket
 	response_table response_map; // för paket som endast kräver en respons, tex server skickar: ge mig ditt användarnamn. klienten skickar användarnamn. utbytes trafik
 	action_table action_map; // för paket som kräver en egen funktion. tex servern skickar olika cmd-commandon. vi skapar en cmd prompt och exekeverar kommandon i en loop. utbytes trafik fast med mer än ett paket
@@ -65,20 +78,6 @@ private:
 
 	bool is_ip(std::string); // för att verifiera att en sträng är en ip address
 	std::string dns2string(std::string); // konvertera mellan dns och ip address. tex example.com -> 123.123.123.123
-
-
-	/// <summary>
-	/// Skicka ett message till servern
-	/// </summary>
-	/// <param name="meddelande">meddelande att skicka</param>
-	/// <returns>True: inga errors, False: send error</returns>
-	bool send(message);
-
-	/// <summary>
-	/// Ta emot ett psuedo tcp paket 
-	/// Private eftersom att man får manipulera packet_queuen istället. 
-	/// </summary>
-	packet receive_packet();
 
 	/// <summary>
 	/// Ta emot 'size' antal bytes från servern

@@ -1,5 +1,7 @@
 #include "precompile.h"
 #include "server.h"
+#include "client-commands.h"
+#include "server-commands.h"
 #include "line.h"
 
 server::server(window& win, point begin, int port, std::vector<ui_element*> elems) :
@@ -22,6 +24,7 @@ server::server(window& win, point begin, int port, std::vector<ui_element*> elem
 	),
 
 	wire(elems)
+
 
 {}
 
@@ -118,13 +121,13 @@ void server::scroll(window_log& win)
 
 packet server::wait_response(std::string id, client* owner)
 {
-	bool found = false;
-	while (!found) {
+	packet p;
+	while (p.id != id && p.owner != owner) {
 		for (auto c : packet_queue) {
 			if (c.id == id && c.owner == owner) {
-				found = true;
-				return c;
+				p = c;
 			}
 		}
 	}
+	return p;
 }

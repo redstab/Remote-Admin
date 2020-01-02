@@ -1,11 +1,10 @@
 #include "client.h"
+#include "commands.h"
 
-client::client(std::string ip, int port, response_table responses, action_table actions) : 
+client::client(std::string ip, int port) : 
 	ip_{ ip }, 
 	port_{port}, 
-	client_implentation(ip_, port_),
-	responses_{responses},
-	actions_{actions}
+	client_implentation(ip_, port_)
 {
 	client_implentation.set_disconnect_action([&] {startup(); });
 	client_implentation.set_actions(actions_);

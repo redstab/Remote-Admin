@@ -70,7 +70,7 @@ void tcp_server::run()
 					packet paket = receive_paket(klient); // ta emot
 					if (paket.data != "" && paket.id != "") { // titta efter error
 						packet_queue.push_back(paket); // lägg till i kön 
-						*log << str_time() << " recv(" << std::to_string(klient.socket_id) << ") - data[" << std::to_string(paket.data.length()) << "], id[" << std::to_string(paket.id.length()) << "]\n"; // logga motag
+						*log << str_time() << " recv(" << std::to_string(klient.socket_id) << ") - id[" << paket.id.substr(0, 14) << "..], data[" << std::to_string(paket.data.length()) << "]\n"; // logga motag
 					}
 				}
 			}
@@ -80,7 +80,7 @@ void tcp_server::run()
 
 bool tcp_server::send(client klient, message meddelande)
 {
-	// med meddelande strukturen ex{ data: KS, id: HELLOWORLD } skapas meddelande buffer som ser ungefär ut så här: 000000000000010000000000000002HELLOWORLDKS
+	// med meddelande strukturen ex{ data: KS, id: HELLOWORLD } skapas meddelande buffer som ser ungefär ut så här [id-size][data-size][id][data]: 000000000000010000000000000002HELLOWORLDKS
 	std::string buffer = meddelande.buffer();
 	return !Error(::send(klient.socket_id, buffer.c_str(), buffer.length(), 0)); // Kolla efter error och skicka packet
 }
@@ -181,4 +181,9 @@ void tcp_server::accept_user()
 	inet_ntop(AF_INET, &socket_address.sin_addr, host, NI_MAXHOST); // socket_address till sträng
 	clients.add_client(new_klient, host); // lägg till en ny klient i listan
 	*log << str_time() << " accept() - " << Error(0).to_string() << "\n";
+}
+
+void tcp_server::delete_packet(packet p)
+{
+	packet_queue.erase(std::remove(packet_queue.begin(), packet_queue.end(), p), packet_queue.end());
 }

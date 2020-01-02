@@ -99,3 +99,8 @@ void window_log::draw_element()
 	wrefresh(window_.get_window());
 	wrefresh(derived_);
 }
+
+WINDOW* window_log::get_derived()
+{
+	return derived_;
+}

@@ -33,202 +33,20 @@ private:
 		{"disconnect", "disconnect a specific client \n\n  disconnect [name|id|ip|<all>]\n"}
 	};
 	std::unordered_map<std::string, std::string> klient_help = { // dictionary för att hantera hjälpen till klient kommandon
-		{"detach", "detaches from a client to interact with the server instead"},
-		{"reconnect", "reconnects the attached client"},
-		{"disconnect", "disconnects the attached client"},
-
+		{"detach", "detaches from a client to interact with the server instead\n"},
+		{"reconnect", "reconnects the attached client\n"},
+		{"disconnect", "disconnects the attached client\n"},
+		{"process", "executes a process on klient\n\n  process [-h][-v] [program]\n\n   -h : hidden\n   -v : visible\n   program : fullpath to executable\n"}
 	};
 
-	func_map server_commands = { // för att hantera server specefika kommandon i konsolen
+	func_map get_server_commands();
+	func_map get_client_commands();
 
-		{"show", [&](std::string args) {
+	// för att hantera server specefika kommandon i konsolen
+	func_map server_commands = get_server_commands();
 
-			argument_handler({
-
-				{"clients", [&](std::string value) {
-					console << "{\n";
-					for (auto c : clients.get_list()) {
-						console << "  " << c.to_string() << "\n";
-					}
-					console << "}\n";
-				}},
-
-				{"time", [&](std::string value) {
-					console << str_time() << "\n";
-				}},
-
-				{"info", [&](std::string value) {
-					console << " port: " << std::to_string(listen_port) << "\n listen_socket: " << std::to_string(listen_socket) << "\n number of clients: " << std::to_string(clients.get_list().size()) << "\n";
-				}}
-
-			}, args, "show");
-		}},
-
-		{"shutdown", [&](std::string args) {
-			argument_parser(
-				[&](std::string value) {
-					alive = false;
-					console.dö();
-			}, args, "shutdown");
-		}},
-
-		{"scroll", [&](std::string args) {
-
-			argument_handler({
-
-				{"log", [&](std::string value) {
-					console << "scrolling " << args;
-					scroll(console_log);
-					console << " -> done\n";
-				}},
-
-				{"command", [&](std::string value) {
-					console << "scrolling " << args;
-					scroll(console);
-					console << " -> done\n";
-				}}
-
-			}, args, "scroll");
-
-		}},
-
-		{"help", [&](std::string args) {
-			console << "\n";
-			for (auto [func, doc] : server_help) {
-				console << func << " - " << doc << "\n";
-			}
-			console << "\n";
-		}},
-
-		{"attach", [&](std::string args) {
-			argument_parser([&](std::string value) {
-				client* klient = clients.search(args);
-				if (klient != nullptr) { // found
-					attached = klient;
-					console.set_prompt(attached->name + " $ ");
-					console.set_functions(client_commands);
-				}
-				else { // !found
-					console << "There is no such client connected to the server\n";
-				}
-			}, args, "attach");
-		}},
-
-		{"reconnect", [&](std::string args) {
-			argument_parser([&](std::string value) {
-				client* klient = clients.search(args);
-				if (klient != nullptr) { // found
-					clients.disconnect_client(*klient);
-					console << "Successfully disconnected client\n";
-					console << "Client should connect soon..\n";
-				}
-				else if (args == "all") { // om man vill disconnecta alla klienter
-					for (auto c : clients.get_list()) {
-						clients.disconnect_client(c);
-					}
-					console << "Successfully disconnected all clients\n";
-					console << "Clients should connect soon..\n";
-				}
-				else { // !found
-					console << "There is no such client connected to the server\n";
-				}
-			}, args, "disconnect");
-		}},
-
-		{"disconnect", [&](std::string args) {
-			argument_parser([&](std::string value) {
-				client* klient = clients.search(args);
-				if (klient != nullptr) { // found
-					send(*klient, { "exit", " " });
-					clients.disconnect_client(*klient);
-					console << "Successfully disconnected client\n";
-				}
-				else if (args == "all") { // om man vill disconnecta alla klienter
-					for (auto c : clients.get_list()) {
-						send(c, { "exit", " " });
-						clients.disconnect_client(c);
-					}
-					console << "Successfully disconnected all clients\n";
-				}
-				else { // !found
-					console << "There is no such client connected to the server\n";
-				}
-			}, args, "disconnect");
-		}}
-
-	};
-
-	func_map client_commands = {
-
-		{"detach", [&](std::string args) {
-			attached = nullptr;
-			console.set_prompt(default_prompt);
-			console.set_functions(server_commands);
-		}},
-
-		{"process", [&](std::string args) {
-			auto found = args.find_first_of(' ');
-			message msg;
-			msg.identifier = "process-v";
-			if (found != std::string::npos) {
-				msg.data = args.substr(found + 1);
-				if (args.substr(0, found) == "hidden") {
-					msg.identifier = "process-h";
-				}
-				else if (args.substr(0, found) == "visible") {
-					msg.identifier = "process-v";
-				}
-			}
-			else {
-				msg.data = args;
-			}
-			if (send(*attached, msg)) {
-				console << "Executing " << args;
-				packet response = wait_response("response|" + msg.identifier, attached);
-				if (response.data == "SUCCESS") {
-					console << " -> Success\n";
-				}
-				else {
-					console << " -> Error[" << response.data << "]\n";
-				}
-			}
-			else {
-				console << "Could not send request " << args << "\n";
-			}
-		}},
-
-		{"send", [&](std::string args) {
-
-			message msg;
-			auto found = args.find_first_of(' ');
-			if (found != std::string::npos) {
-				msg.identifier = args.substr(0, found);
-				msg.data = args.substr(found + 1);
-			}
-			else {
-				msg.identifier = args;
-				msg.data = " ";
-			}
-
-			if (send(*attached, msg)) {
-				console << msg.identifier << "(" << msg.data << ") ->" << attached->name << "\n";
-
-				packet paket = wait_response("response|" + msg.identifier, attached);
-				// found proper response
-
-				console << attached->name << " -> [(" << paket.id << ")|(" << paket.data << ")]\n";
-
-				//remove paket
-				packet_queue.erase(std::remove(packet_queue.begin(), packet_queue.end(), paket), packet_queue.end());
-
-			}
-			else {
-				console << "Could not send request " << args << "\n";
-			}
-
-
-		}}
-	};
+	// för att hantera klient specefika kommandon i konsolen
+	func_map client_commands = get_client_commands();
 
 	client* attached; // the currently attached client
 
@@ -246,5 +64,5 @@ private:
 
 	void scroll(window_log&); // använd för att skrolla fönstren
 
-	packet wait_response(std::string id, client* owner);
+	packet wait_response(std::string id, client* owner); // väntar tills en respons från klienten finns i packet_queue
 };

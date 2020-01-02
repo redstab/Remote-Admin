@@ -9,5 +9,7 @@
 #include <unordered_map>
 #include <sstream>
 #include <algorithm>
+#include <fstream>
+#include <filesystem>
 #include <functional>
 #pragma comment (lib, "ws2_32.lib")

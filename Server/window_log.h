@@ -17,6 +17,8 @@ public:
 	size get_element_size() const; 
 	void draw_element();
 
+	WINDOW* get_derived();
+
 protected:
 	WINDOW* derived_; // barn fönstret till window_.get_window() i ui_element
 	size max_size_; // max storlek för barn fönstret

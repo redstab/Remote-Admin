@@ -155,7 +155,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="client_list.cpp" />
-    <ClCompile Include="commands.cpp" />
     <ClCompile Include="command_line.cpp" />
     <ClCompile Include="Error.cpp" />
     <ClCompile Include="input_box.cpp" />
@@ -171,8 +170,8 @@
     <ClCompile Include="wireframe.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="client-commands.h" />
     <ClInclude Include="client_list.h" />
-    <ClInclude Include="commands.h" />
     <ClInclude Include="command_line.h" />
     <ClInclude Include="curse.h" />
     <ClInclude Include="Error.h" />
@@ -181,11 +180,13 @@
     <ClInclude Include="pod.h" />
     <ClInclude Include="point.h" />
     <ClInclude Include="precompile.h" />
+    <ClInclude Include="server-commands.h" />
     <ClInclude Include="server.h" />
     <ClInclude Include="tcp_server.h" />
     <ClInclude Include="text.h" />
     <ClInclude Include="title.h" />
     <ClInclude Include="ui_element.h" />
+    <ClInclude Include="utility.h" />
     <ClInclude Include="window.h" />
     <ClInclude Include="window_log.h" />
     <ClInclude Include="wireframe.h" />

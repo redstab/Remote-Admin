@@ -8,11 +8,13 @@
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
+#include <filesystem>
 #include <queue>
 #include <sstream>
 #include "curses.h"
 #include <thread>
 #include <chrono>
+#include <fstream>
 #include <iomanip>
 #include <optional>
 #include <functional>

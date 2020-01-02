@@ -58,6 +58,10 @@ struct packet {
 			data == that.data &&
 			*owner == *that.owner;
 	}
+
+	std::string to_string() {
+		return "[" + id + "|" + data.substr(0, 10) + "]\n";
+	}
 };
 
 // struktur vid skickning av en data eller ett meddelande
@@ -68,8 +72,8 @@ struct message {
 	std::string buffer() { // använt för att seriliza message strukturten till en sträng för att kunna överföra den via send
 		std::stringstream ss;
 		ss
-			<< std::string(16 - std::to_string(identifier.length()).length(), '0') << identifier.length()
-			<< std::string(16 - std::to_string(data.length()).length(), '0') << data.length()
+			<< std::string(16 - std::to_string(identifier.length()).length(), '0') << std::to_string(identifier.length())
+			<< std::string(16 - std::to_string(data.length()).length(), '0') << std::to_string(data.length())
 			<< identifier
 			<< data;
 

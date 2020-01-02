@@ -132,5 +132,11 @@ protected:
 	/// </summary>
 	void accept_user();
 
+	/// <summary>
+	/// Ta bort ett packet ur kön
+	/// </summary>
+	/// <param name="paket">paket som ska tas bort</param>
+	void delete_packet(packet);
+
 };
 
