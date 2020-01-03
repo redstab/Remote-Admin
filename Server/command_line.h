@@ -11,15 +11,12 @@ public:
 	void prompt(); // för att acceptera ett kommando och exekevera om den finns i funk mappen
 	bool alive(); // för att bryta loopen vid tex shutdown 
 	void set_prompt(std::string prompt) { prompt_ = prompt; } // set funktion
-	void set_functions(func_map fm) { external_functions_ = fm; } // set funktion
-	std::string input_str(int); // för att ta emot input: tex cin << s; -> input_str(2);
+	void set_functions(func_map fm) { functions_ = fm; } // set funktion
+	std::string input_str(); // för att ta emot input: tex cin << s; -> input_str(2);
 	void dö();
 private:
 	std::string prompt_; // prompt-meddelande
-	func_map external_functions_; // map av ytre funktioner
-	func_map internal_functions_ = { // map av internal funktioner för hantera konsolen
-		{"clear", [&](std::string param) {data_.clear(); cursor_ = 0; }}
-	};
+	func_map functions_; // map av funktioner
 	bool alive_; // för att upperäthålla en loop
 	std::string input(int y); // för att ta input vid en specifik y koordinat
 	std::vector<std::string> argument_parser(std::string); // parsa sträng efter mellanslag för att seperera argument

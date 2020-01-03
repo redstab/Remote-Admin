@@ -62,6 +62,13 @@ void window_log::scroll(int sc)
 	}
 }
 
+void window_log::clear()
+{
+	data_.clear();
+	cursor_ = 0;
+	char_count_ = 0;
+}
+
 size window_log::get_element_size() const
 {
 	return max_size_;

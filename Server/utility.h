@@ -42,7 +42,7 @@ namespace utility {
 		wrefresh(win);
 	}
 	void print_clients(std::vector<client> items, WINDOW* win, int offset, int selected, size max_size) {
-		mvwprintw(win, 0, 0, std::string("%-" + std::to_string(max_size.x) + "s").c_str(), "Connnected Clients");
+		mvwprintw(win, 0, 0, std::string(std::string(max_size.x / 2 - std::string("Connnected Clients").length() / 2, ' ') + "Connnected Clients").c_str());
 		int max_ip = std::max_element(items.begin(), items.end(), [&](client a, client b) {
 			return a.ip_address.length() < b.ip_address.length();
 		})->ip_address.length() + 2; // hitta max längd på ip address
@@ -55,8 +55,12 @@ namespace utility {
 			return a.socket_id < b.socket_id;
 		})->socket_id).length() + 2; // hitta max längd på socket_id
 
-		int top_pad = 1;
+		int top_pad = 3;
 		std::string format = "%-*d%-*s%*s"; // socket_id namn         ip
+
+		mvwprintw(win, 1, 0, "%-*s%-*s%*s", max_id, "Id", max_name, "Name", (max_size.x - max_id - max_name), "Address");
+
+		mvwhline(win, 2, 0, 0, max_size.x);
 
 		for (int i = offset; i < max_size.y - top_pad + offset; i++) {
 			if (i == selected) {

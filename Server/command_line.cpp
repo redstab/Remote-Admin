@@ -4,7 +4,7 @@
 command_line::command_line(window& win, point position, size max_size, std::string prompt, func_map functions) :
 	window_log(win, position, max_size, true), // skapa barnet med parametrar 
 	prompt_{ prompt }, // sätt promptmeddelande
-	external_functions_{ functions }, // sätt funktions kartan
+	functions_{ functions }, // sätt funktions kartan
 	alive_{ true }
 {}
 
@@ -15,7 +15,7 @@ void command_line::prompt() {
 	auto [function, arguments] = split_input(command); // splita inputen med funktionen och argumenten tex [show, clients] från strängen "show clients" där den separerar vid mellanslag
 
 	*this << command + "\n"; // om man redan är vid slutet av buffer behöver man inte skriva en ny linje
-	if (!map_exist_execute(external_functions_, function, arguments) && !map_exist_execute(internal_functions_, function, arguments)) {
+	if (!map_exist_execute(functions_, function, arguments)) {
 		*this << "'" << function << "' is not recognized as a command" << "\n";
 	}
 }
@@ -25,9 +25,10 @@ bool command_line::alive() // konsolen är vid liv?
 	return alive_;
 }
 
-std::string command_line::input_str(int)
+std::string command_line::input_str()
 {
 	std::string old_prompt = prompt_;
+	prompt_ = "";
 	std::string command = input((data_.length() / max_lenght_) - cursor_);
 	*this << command;
 	prompt_ = old_prompt;

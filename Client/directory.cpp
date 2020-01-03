@@ -1,3 +1,4 @@
+#include "precompile.h"
 #include "directory.h"
 directory::directory(std::string begin_path) : dir(begin_path) { index(); }
 

@@ -146,7 +146,7 @@ int server::pick_template(int max_elements, int top_offset, size max_size, std::
 		}
 		if (key == KEY_DOWN) { // DOWN ARROW
 			if ((cursor + 1) < max_elements) { // om cursor(index) är mindre än vektor längden
-				if ((cursor + 1 - offset) == max_size.y - 1) { // om den nästa relativa cursor positionen är under skärmen, öka offset
+				if ((cursor + 1 - offset) == max_size.y - top_offset) { // om den nästa relativa cursor positionen är under skärmen, öka offset
 					offset += 1;
 				}
 				print_func(++cursor, offset); // öka cursor och printa igen
@@ -238,7 +238,7 @@ bool server::pick_file_attached(std::filesystem::path root, std::string& buffer)
 bool server::pick_client(client*& buffer)
 {
 	if (clients.get_list().size() != 0) {
-		int index = pick_template(clients.get_list().size(), 0, console.get_element_size(),
+		int index = pick_template(clients.get_list().size(), 2, console.get_element_size(),
 			[&](int cursor, int offset) {utility::print_clients(clients.get_list(), console.get_derived(), offset, cursor, console.get_element_size()); },
 			[&] {
 				if (attached != nullptr && !(attached->name.empty() || attached->ip_address.empty())) { // om klient är ansluten

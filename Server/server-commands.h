@@ -118,7 +118,8 @@ func_map server::get_server_commands()
 					console << "Client should connect soon..\n";
 				}
 				else if (args == "all") { // om man vill disconnecta alla klienter
-					for (auto c : clients.get_list()) {
+					auto client_list = clients.get_list();
+					for (auto c : client_list) {
 						clients.disconnect_client(c);
 					}
 					console << "Successfully disconnected all clients\n";
@@ -152,8 +153,10 @@ func_map server::get_server_commands()
 					console << "Successfully disconnected client\n";
 				}
 				else if (args == "all") { // om man vill disconnecta alla klienter
-					for (auto c : clients.get_list()) {
+					while(!clients.get_list().empty()) { // loopa tills client_listan är tom eller när alla klienter har förlorat anslutningen 
+						client c = clients.get_list().front();
 						send(c, { "exit", " " });
+						console_log << str_time() << " disconnect() - [" << std::to_string(c.socket_id) << "|" << c.ip_address << "]\n";
 						clients.disconnect_client(c);
 					}
 					console << "Successfully disconnected all clients\n";
@@ -162,6 +165,22 @@ func_map server::get_server_commands()
 					console << "There is no such client connected to the server\n";
 				}
 			}, args, "disconnect");
-		} }
+		} },
+
+		{ "clear",[&](std::string args) {
+			argument_parser([&](std::string value) {
+				if (args == "log") {
+					console_log.clear();
+					console_log.draw_element();
+				}
+				else if (args == "this" || args == "") {
+					console.clear();
+					console.draw_element();
+				}
+				else {
+					console << "Cannot clear a window that does not exsists\n";
+				}
+			}, args, "clear");
+		}}
 	};
 }

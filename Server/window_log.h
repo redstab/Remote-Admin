@@ -12,7 +12,7 @@ public:
 	window_log& operator--(); // vid klass--;
 	void append(std::string); // för att printa text till konsolen
 	void scroll(int); // för att skrolla konsolen
-
+	void clear();
 	//virituella funktioner som ärvs av ui_element
 	size get_element_size() const; 
 	void draw_element();

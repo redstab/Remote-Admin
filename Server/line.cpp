@@ -6,7 +6,7 @@ line::line(const window& win, point begin, int length, orientation rotation) : u
 void line::set_orientation(orientation rotation)
 {
 	clear_element();
-
+	//kan byta orientation eftersom att normala konsolen så har en "pixel" relatinerna 1:2 mellan längd och höjd. Alltså måste vi dela storlekenm när vi byter från horizontel till vertikalt och dubblera för vice versa
 	if (rotation_ == orientation::horizontal and rotation == orientation::vertical) {
 		length_ /= 2;
 	}
@@ -34,11 +34,13 @@ int line::get_length() const
 
 size line::get_element_size() const
 {
+	//returnerar storlek beroende på orientation
 	return ((rotation_ == orientation::vertical) ? size{1, length_} : size{length_, 1});
 }
 
 void line::draw_element()
 {
+	// funktions pekare som väljer print funktionen beroende på orientationen
 	int (*line_func)(WINDOW*, int, int, chtype, int) = (rotation_ == orientation::vertical) ? mvwvline : mvwhline;
 	
 	line_func(window_.get_window(), position_.y, position_.x, 0, length_);

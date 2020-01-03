@@ -1,3 +1,4 @@
+#include "precompile.h"
 #include "client.h"
 #include "commands.h"
 

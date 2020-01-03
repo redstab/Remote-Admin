@@ -117,7 +117,7 @@ std::string tcp_server::receive_bytes(client& klient, int size)
 		data += std::string(buffer.begin(), buffer.end()); // konvertera buffern till sträng
 	}
 	else if (bytes_received <= 0) { // user disconnected 
-		if (Error(bytes_received).code != 10038) { // error 10038 är att utföra recv på något som inte är en socket, alltså måste detta innebära att vi har kallat recv på en klient som är bortagen därför bör vi inte gör något
+		if (Error(bytes_received).code != 10038 && !klient.ip_address.empty()) { // error 10038 är att utföra recv på något som inte är en socket, alltså måste detta innebära att vi har kallat recv på en klient som är bortagen därför bör vi inte gör något
 			*log << str_time() << " disconnect() - [" << std::to_string(klient.socket_id) << "|" << klient.ip_address << "]\n";
 			clients.disconnect_client(klient);
 		}
