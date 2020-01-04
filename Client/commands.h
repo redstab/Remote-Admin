@@ -23,35 +23,18 @@ action_table client::get_actions()
 		}},
 		{"select", [&](std::string data) {
 			directory manager(data); //antag data är bas directory
-			//packet paket; // ta emot paket
-			//client_implentation.send({ "dir_status", std::to_string(manager.current_directory().size()) }); // skicka antal items i mappen
 			helper::send_directory(client_implentation, manager.current_directory()); // skicka bas mappen
 
 			packet paket = client_implentation.receive_packet();
 			while (paket.id != "dir_action" && paket.data != "done") {
 				std::cout << "recv()[" << paket.id << "|" << paket.data << "]" << std::endl;
 				if (!paket.id.empty() && !paket.data.empty()) { // paketet inte är tomt
-					if (paket.id == "goto" && std::all_of(paket.data.begin(), paket.data.end(), isdigit)) {
-						//client_implentation.send({ "dir_status", std::to_string(manager.current_directory().size()) }); // skicka antal items i mappen
+					if (paket.id == "goto" && std::all_of(paket.data.begin(), paket.data.end(), isdigit)) { // om vi ska gå in i en undermapp
 						helper::send_directory(client_implentation, manager.descend(std::stoi(paket.data))); // gå in och skicka undermappen
 					}
 				}
 				paket = client_implentation.receive_packet();
 			}
-
-			
-
-			//while (paket.id != "dir_action" && paket.data != "done") { // medans datan inte är "done"
-			//	client_implentation.send({ "dir_status", std::to_string(manager.current_directory().size()) });
-			//	helper::send_directory(client_implentation, manager.current_directory()); // skicka bas mappen
-			//	if (!paket.id.empty() && !paket.data.empty()) { // paketet inte är tomt
-			//		auto [arg1, arg2] = helper::ArgSplit(paket.data); // splita datan i paketet
-			//		if (arg1 == "goto" && std::all_of(arg2.begin(), arg2.end(), isdigit)) {
-			//			helper::send_directory(client_implentation, manager.descend(std::stoi(arg2))); // gå in och skicka undermappen
-			//		}
-			//	}
-			//	paket = client_implentation.receive_packet();
-			//}
 		}}
 	};
 }

