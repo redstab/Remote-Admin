@@ -1,18 +1,18 @@
 #include "precompile.h"
 #include "client.h"
 
-int main() // TODO: make this to class and fix a hash-table for identifier buffers for incoming pakets. add some cmd thingies. remote stuff and we are done. boom remote administration tool
+int main()
 {
 	std::string ip_address = "127.0.0.1";// IP Address of the server
 	int port = 54321; // Listening port # on the server
 
-	std::locale::global(std::locale("sw"));
+	std::locale::global(std::locale("sw")); // så att vi kan använda åäö
 
-	startup_wsa();
+	startup_wsa(); // starta winsocket
 
-	client main(ip_address, port);
+	client main(ip_address, port); // initializera klient till ip och port
 
-	main.connect();
+	main.connect(); // anslut
 
-	main.run();
+	main.run(); // kör packet hanterar
 }

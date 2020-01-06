@@ -1,33 +1,31 @@
 #pragma once
-#include <vector>
-#include <filesystem>
-#include <string>
+#include "precompile.h"
 
 using path = std::filesystem::path;
-using dir_item = std::pair<path, int>;
+using dir_item = std::pair<path, int>; // path och storlek, storlek blir -9 när det är en mapp
 
-//För att välja filer så måste vi ha en cli mapp explorer
+//mapp explorer
 class directory
 {
 public:
 
-	directory(std::string);
+	directory(std::string); // initializera klassen till en basmapp
 
-	std::vector<dir_item> ascend();
+	std::vector<dir_item> ascend(); // gå upp till föräldrar mappen och returnera den
 
-	std::vector<dir_item> descend(int);
+	std::vector<dir_item> descend(int); // gå in i en undermapp med index och returnera mappen
 
-	std::vector<dir_item> current_directory();
+	std::vector<dir_item> current_directory(); // returnera aktuella mappen
 
 	std::string buffer(int);
 
 private:
 
-	path dir;
+	path dir; // för att hålla koll på aktuell path
 
-	std::vector<dir_item> current_directory_;
+	std::vector<dir_item> current_directory_; // för att spara query
 
-	std::vector<dir_item> index();
+	std::vector<dir_item> index(); // för att indexera dir mappen
 
 };
 

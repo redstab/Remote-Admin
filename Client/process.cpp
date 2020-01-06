@@ -29,7 +29,7 @@ console_process::~console_process()
 
 }
 
-std::tuple<HANDLE, HANDLE, HANDLE, HANDLE> console_process::handles()
+std::tuple<HANDLE, HANDLE, HANDLE, HANDLE> console_process::handles() // returnera alla pipe handles
 {
 	return std::make_tuple(input_read, input_write, output_read, output_write);
 }
@@ -81,7 +81,7 @@ std::string console_process::read_pipe(HANDLE& pipe)
 	if (PeekNamedPipe(pipe, nullptr, 0, nullptr, &bytes_available, nullptr) && bytes_available != 0) { // ta reda på hur mycker som ska läsas genom att pika in på pipen och skriva det till bytes_available
 		output.resize(bytes_available); // ändra storlek på buffer till antal bytes som ska tas emot
 		if (!ReadFile(pipe, &output.at(0), bytes_available, nullptr, nullptr)) { // ta emot bytes och skriv till buffern
-			std::cout << "ReadFile() -> " << Error(GetLastError()) << std::endl; // vid error
+			std::cout << "ReadFile() -> " << Error() << std::endl; // vid error
 		}
 	}
 

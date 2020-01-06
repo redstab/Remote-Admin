@@ -13,7 +13,7 @@ std::vector<dir_item> directory::descend(int index)
 	if (index >= 0 && index < current_directory_.size()) { // bounds check
 		auto item = current_directory_[index].first;
 		if (item.extension() == "") {// is folder
-			dir /= item; // append end -> (c:\\) / books = c:\books
+			dir /= item; // append end -> (c:\\) / (books) = c:\books
 			dir = dir.lexically_normal(); // fixa relativa directories ex normalize(c:\books\..) -> c:\ 
 		}
 	}
@@ -71,7 +71,7 @@ std::vector<dir_item> directory::index()
 		for (auto p : iterator) { // gå igenom mappen
 
 			if (std::filesystem::path(p).extension() == "") { // is folder
-				directory_items.push_back({ std::filesystem::path(p), -9 });
+				directory_items.push_back({ std::filesystem::path(p), -9 }); // lägg till mapp med storlek -9
 			}
 			else {
 				std::error_code er;

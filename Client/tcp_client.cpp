@@ -32,8 +32,7 @@ bool tcp_client::connect()
 	inet_pton(AF_INET, ip_.c_str(), &hint.sin_addr); // konvertera ip till sockaddr
 
 	Error connect_error = ::connect(server_socket, (sockaddr*)&hint, sizeof(hint)); // försök ansluta
-	if (connect_error)
-	{
+	if (connect_error) {
 		closesocket(server_socket); // stäng socket mo misslyckad anslutning
 		return false;
 	}
@@ -73,10 +72,10 @@ std::string tcp_client::dns2string(std::string dns)
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 
-	if (getaddrinfo(dns.c_str(), nullptr, &hints, &result) >= 0) {
-		char ip[256];
+	if (getaddrinfo(dns.c_str(), nullptr, &hints, &result) >= 0) { // försök få info om dnsen
+		char ip[256]; // allokera buffer
 		unsigned long size = 256;
-		WSAAddressToStringA(result->ai_addr, result->ai_addrlen, nullptr, ip, &size);
+		WSAAddressToStringA(result->ai_addr, result->ai_addrlen, nullptr, ip, &size); // konvertera wsa struktur till sträng
 		dns = ip;
 	}
 
@@ -129,7 +128,7 @@ std::string tcp_client::receive(int size)
 	std::string data_received; // buffer
 
 	while (tcp_packets-- > 0) { // ta emot alla max längd paket
-		data_received += receive_bytes(tcp_packet_size);
+		data_received += receive_bytes(tcp_packet_size); // lägg till i buffer
 	}
 
 	return data_received + receive_bytes(tcp_remainder_size); // ta emot resten och returnera
@@ -141,10 +140,10 @@ header tcp_client::receive_header()
 	const int header_size = 32;
 	std::string head = receive(header_size); // ta emot 32 bytes av header data
 
-	if (std::all_of(head.begin(), head.end(), isdigit) && head != "") { // bekräfta att alla bytes är nummer
+	if (std::all_of(head.begin(), head.end(), isdigit) && head != "") { // bekräfta att alla bytes är nummer och att den inte är tom
 		header _header;
-		_header.id_size = std::stoi(head.substr(0, header_size / 2)); // 0 --> 16 karaktärer blir konverterade till en sträng
-		_header.data_size = std::stoi(head.substr(header_size / 2, header_size / 2)); // 16 --> 32 karaktärer blir konverterade till en sträng
+		_header.id_size = std::stoi(head.substr(0, header_size / 2)); // 0 --> 16 karaktärer blir konverterade till en int
+		_header.data_size = std::stoi(head.substr(header_size / 2, header_size / 2)); // 16 --> 32 karaktärer blir konverterade till en int
 		return _header;
 	}
 	else { // headern är i fel format så därför returnerar vi error header
@@ -171,7 +170,7 @@ void tcp_client::handle_packet(packet paket)
 	std::string id = paket.id;
 	std::string data = paket.data;
 
-	if (response_map.count(id)) { // om paket idet finns i pesponse tabellen
+	if (response_map.count(id)) { // om paket idet finns i response tabellen
 		message msg; // skapa nytt meddelande med tabellvärdet
 		msg.identifier = "response|" + id;
 		msg.data = response_map[id](data);
@@ -184,7 +183,7 @@ void tcp_client::handle_packet(packet paket)
 		action_map[id](data); // aktivera funktionen förbinden med idet 
 	}
 	else { // annars error
-		std::cout << "handle_packet()" << " [ " << paket.id << "|" << paket.data << "]" << " - " << Error(-2, "kan inte hantera paket") << std::endl; 
+		std::cout << "handle_packet()" << " [ " << paket.id << "|" << paket.data << "]" << " - " << Error(-2, "kan inte hantera paket") << std::endl;
 	}
 
 }

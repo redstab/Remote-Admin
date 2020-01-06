@@ -14,7 +14,7 @@ struct console_properties {
 };
 
 /// <summary>
-/// klass som används vid hantering av olika konsol program
+/// klass som används vid hantering av olika konsol program som kräver IO
 /// </summary>
 class console_process
 {
@@ -69,21 +69,26 @@ public:
 
 private:
 	
-	STARTUPINFOA startup_info{};
-	PROCESS_INFORMATION process_info{};
-	SECURITY_ATTRIBUTES security_attrib{};
+	STARTUPINFOA startup_info{}; // vid upstart av process
+	PROCESS_INFORMATION process_info{}; // under exekvering
+	SECURITY_ATTRIBUTES security_attrib{}; // för pipe skapande
 	
+	// pipe handles
 	HANDLE input_read;
 	HANDLE input_write;
 	HANDLE output_read;
 	HANDLE output_write;
 
+	//inställningar till konsol processen
 	console_properties process_properties;
 
+	//skapa en ny pipe
 	bool open_pipe(HANDLE&, HANDLE&);
 
+	//läs från processen och exekvera lamda med resultatet, läser mha read_pipe
 	void read_console(std::function<void(std::string)>);
 
+	//läs pipe. tittar hur mycket som kan läsas, sedan läser man exakt så mycket
 	std::string read_pipe(HANDLE&);
 
 };
