@@ -96,6 +96,7 @@ packet tcp_client::receive_packet()
 	header huvud = receive_header(); // ta emot headern 
 
 	if (huvud.data_size > 0 && huvud.id_size > 0) { // om inte error
+		// använd header för att ta emot packet
 		paket.id = receive_bytes(huvud.id_size); // ta emot id
 		paket.data = receive_bytes(huvud.data_size); // ta emot data
 	}
@@ -174,7 +175,7 @@ void tcp_client::handle_packet(packet paket)
 		message msg; // skapa nytt meddelande med tabellvärdet
 		msg.identifier = "response|" + id;
 		msg.data = response_map[id](data);
-		if (msg.identifier != "response|download") {
+		if (msg.identifier != "response|download") { // eftersom att downloads data är binärt så ger utskriften karaktärer som inte går att skriva ut som chars
 			std::cout << "send()[" << msg.buffer() << "]" << std::endl;
 		}
 		send(msg); // skicka respons

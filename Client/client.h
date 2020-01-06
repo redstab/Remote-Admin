@@ -20,7 +20,7 @@ public:
 	/// <summary>
 	/// Starta paket_loop
 	/// </summary>
-	void run() { client_implentation.paket_loop(); }
+	void run_packet_handler() { client_implentation.paket_loop(); }
 
 private:
 

@@ -6,12 +6,15 @@
 #include "title.h"
 #include "wireframe.h"
 
+// för att hantera ui aspekten hos server applicationen 
+// ärver från ui_element eftersom att den är en sorts element som visas på skärmen
+// ärver från tcp_server eftersom att den här en typ av server 
 class server :
 	public ui_element,
 	public tcp_server
 {
 public:
-	server(window&, point, int, std::vector<ui_element*>);
+	server(window&, point, int, std::vector<ui_element*>); // konstruktor
 
 	void startup(); // för att starta paket tråden
 
@@ -40,6 +43,8 @@ private:
 		{"download", "downloads a file from the attached client\n\n  download [path]|[-p]\n\n   path : path to file\n   -p : pick path\n"}
 	};
 
+	// det går inte att ha dessa mappar utanför instansen av klassen 
+	// eftersom att de bygger på funktionalitet från tcp_server
 	func_map get_server_commands();
 	func_map get_client_commands();
 
@@ -57,7 +62,7 @@ private:
 	command_line console; // för att hantera konsolen (vänster sida)
 	wireframe wire; // för att hantera wireframen(linjer, titel)
 
-	std::thread packet_thread; // tråd för att hantera paket och nya klienter
+	std::thread client_packet_thread; // tråd för att hantera paket och nya klienter
 
 	void argument_handler(func_map fm, std::string args, std::string); // hantera lokala argument till funktioner
 	void argument_parser(std::function<void(std::string)> f, std::string, std::string); // hantera globala parametrar såsom -h och -t

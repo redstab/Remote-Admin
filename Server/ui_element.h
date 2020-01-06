@@ -3,7 +3,10 @@
 #include "point.h"
 #include "window.h"
 
-// abstrakt bas klass till alla element som visas på skärmen
+// bas klass till alla element som ska visas på skärmen
+// kan inte skapa instans av ui_element eftersom att vi inte vet vad ui_element är för något
+// därför skulle man kunna kalla ui_element som en abstrakt klass eller interface till ett ui_element på skärmen
+// eftersom att ui_element skulle kunna vara vad som helst så är draw_element och get_element_size abstrakta.
 class ui_element
 {
 public:

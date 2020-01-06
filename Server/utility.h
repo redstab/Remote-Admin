@@ -1,7 +1,8 @@
 #pragma once
 #include "precompile.h"
-
-namespace utility {
+// hjälp funktioner till server klassen men har ingen anledning till att vara bunden till instansen 
+// detta är eftersom att funktionerna ska kunna användas av olika klasser. dem skulle kunna vara statiska funktioner till klassen men det är typ samma sak som vi gör här
+namespace utility { 
 	std::pair<std::string, std::string> ArgSplit(std::string args, char delimiter) {
 
 		auto found = args.find_first_of(delimiter); // försök hitta första separeringen

@@ -30,7 +30,7 @@ server::server(window& win, point begin, int port, std::vector<ui_element*> elem
 
 void server::startup()
 {
-	packet_thread = std::thread(&tcp_server::run, this);
+	client_packet_thread = std::thread(&tcp_server::run, this);
 }
 
 void server::cli_loop()
@@ -54,7 +54,7 @@ void server::draw_element()
 
 server::~server()
 {
-	packet_thread.join();
+	client_packet_thread.join();
 }
 
 void server::argument_handler(func_map fm, std::string args, std::string func)

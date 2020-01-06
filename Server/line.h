@@ -32,7 +32,7 @@ public:
 	void draw_element(); 
 
 protected:
-	int length_;
-	orientation rotation_;
+	int length_; // längd på linje
+	orientation rotation_; // orientation av linje
 };
 

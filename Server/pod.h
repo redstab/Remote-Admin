@@ -7,7 +7,7 @@ struct client {
 	std::string ip_address; // ipaddressen på klienten
 	std::string name; // pseudo namnet på klienten
 
-	std::unordered_map<std::string, std::string> client_information = { // information om klient
+	std::unordered_map<std::string, std::string> client_information = { // information om klienten
 		{"Windows Product",""},
 		{"Windows Owner",""},
 		{"Windows Organization",""},
@@ -70,7 +70,10 @@ struct message {
 	std::string data;
 
 	std::string buffer() { // använt för att seriliza message strukturten till en sträng för att kunna överföra den via send
-		std::stringstream ss;
+		std::stringstream ss; // ett problem med stringstream är att den tar hänsyn till locale
+		// detta gör att när man skriver råa siffror till streamen så bli dem formaterade med komma 1000 -> 1,000
+		// detta pajar grejen med serialazation
+		// för att undvika detta så har jag valt att konvertera till sträng innan man skriver till streamen
 		ss
 			<< std::string(16 - std::to_string(identifier.length()).length(), '0') << std::to_string(identifier.length())
 			<< std::string(16 - std::to_string(data.length()).length(), '0') << std::to_string(data.length())

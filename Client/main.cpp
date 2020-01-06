@@ -14,5 +14,5 @@ int main()
 
 	main.connect(); // anslut
 
-	main.run(); // kör packet hanterar
+	main.run_packet_handler(); // kör packet hanterar
 }

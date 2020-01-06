@@ -15,7 +15,7 @@ inline void startup_wsa() { // används för att initializera windows sockets till
 using response_table = std::unordered_map <std::string, std::function<std::string(std::string)>>;
 using action_table = std::unordered_map <std::string, std::function<void(std::string)>>;
 
-// klass för att hantera motagning och skickning av data till servern. ansvarar inte för att upperäthålla en ansutning, superklassen är ansvarig för det
+// klass för att hantera motagning och skickning av data till servern. ansvarar inte för att upperäthålla en ansutning, "superklassen" är ansvarig för det
 class tcp_client
 {
 public:

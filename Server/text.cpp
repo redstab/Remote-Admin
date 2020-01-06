@@ -21,5 +21,5 @@ size text::get_element_size() const
 
 void text::draw_element()
 {
-	mvwprintw(window_.get_window(), position_.y, position_.x, text_.c_str());
+	mvwprintw(window_.get_window(), position_.y, position_.x, text_.c_str()); // skriv ut text
 }

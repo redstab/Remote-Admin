@@ -1,5 +1,6 @@
 #pragma once
 #include "precompile.h"
+// simpel wrapper klass för ncurses init
 class curse
 {
 public:

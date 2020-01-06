@@ -3,8 +3,9 @@
 
 using func_map = std::unordered_map<std::string, std::function<void(std::string)>>; // alias för en map/dictionary med nyckeln string och datan en funktion som returnerar void men tar emot en sträng som parameter
 //används för att skapa en konsol i en viss del av skärmen 
+//ärver från window_log för att kunna skapa en log på en viss position av skärmen och för att en konsol är en typ av window_log
 class command_line :
-	public window_log // ärver från window_log som ärver från ui_element
+	public window_log
 {
 public:
 	command_line(window&, point, size, std::string, func_map); // skapa konsolen med ett föräldrar fönster, position, storlek, prompt-meddelande och en funktions map

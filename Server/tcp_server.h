@@ -14,6 +14,7 @@ inline void startup_wsa() { // används för att initializera windows sockets till
 	}
 }
 
+// klass för att hantera anslutningar till olika klienter
 class tcp_server
 {
 

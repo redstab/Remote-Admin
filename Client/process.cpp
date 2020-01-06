@@ -81,7 +81,7 @@ std::string console_process::read_pipe(HANDLE& pipe)
 	if (PeekNamedPipe(pipe, nullptr, 0, nullptr, &bytes_available, nullptr) && bytes_available != 0) { // ta reda på hur mycker som ska läsas genom att pika in på pipen och skriva det till bytes_available
 		output.resize(bytes_available); // ändra storlek på buffer till antal bytes som ska tas emot
 		if (!ReadFile(pipe, &output.at(0), bytes_available, nullptr, nullptr)) { // ta emot bytes och skriv till buffern
-			std::cout << "ReadFile() -> " << Error() << std::endl; // vid error
+			std::cout << "ReadFile() -> " << Error(0) << std::endl; // vid error
 		}
 	}
 

@@ -6,7 +6,7 @@ func_map server::get_client_commands()
 {
 	return {
 
-		{"detach", [&](std::string args) {
+		{"detach", [&](std::string args) { // återgå till server kommandon
 			argument_parser(
 				[&](std::string value) {
 					attached = nullptr; // peka på null itsället för på en klient
@@ -15,7 +15,7 @@ func_map server::get_client_commands()
 			}, args, "detach");
 		}},
 
-		{"process", [&](std::string args) {
+		{"process", [&](std::string args) { // skapa en process hos klienten
 			argument_parser([&](std::string value) {
 				message msg;
 
@@ -24,10 +24,10 @@ func_map server::get_client_commands()
 				
 				std::string file;
 				if (arg1 == "-p" || arg2 == "-p") { // om användaren vill välja fil
-					if (pick_file_attached("C:\\", file)) {
+					if (pick_file_attached("C:\\", file)) { // låt användaren välja fil och sätt path till file buffer som passas in som referens i funktionen
 						console << "Picked ->" << file << "\n";
 					}
-					else {
+					else { // om användaren avbröt filväljning eller klienten förlorade anslutning 
 						console << "Aborted\n";
 						return;
 					}
@@ -42,11 +42,8 @@ func_map server::get_client_commands()
 					msg.data = args;
 				}
 
-				if (!file.empty()) {
+				if (!file.empty()) { // om man valde en fil så sätt datan till path
 					msg.data = file;
-				}
-				else {
-					msg.data = arg2;
 				}
 
 				if (send(*attached, msg)) { // skicka förfrågan 
@@ -67,7 +64,7 @@ func_map server::get_client_commands()
 			}, args, "process");
 		}},
 
-		{"help", [&](std::string args) {
+		{"help", [&](std::string args) { // visa hjälp
 			console << "\n";
 			for (auto [func, doc] : klient_help) { // skriver ut alla help dokument
 				console << func << " - " << doc << "\n";
@@ -75,16 +72,16 @@ func_map server::get_client_commands()
 			console << "\n";
 		}},
 
-		{"download", [&](std::string args) {
+		{"download", [&](std::string args) { // ladda ner en fil från klienten
 			argument_parser([&](std::string value) {
 				message msg{"download", ""};
-				if (!args.empty() && args == "-p") {  // Select file
+				if (!args.empty() && args == "-p") {  // Om man vill välja en fil att ladda ner
 					std::string buffer;
-					if (pick_file_attached("C:\\", buffer)) {
+					if (pick_file_attached("C:\\", buffer)) {// låt användaren välja fil och sätt path till buffer som passas in som referens i funktionen
 						console << "Picked ->" << buffer << "\n";
 						msg.data = buffer;
 					}
-					else {
+					else {  // om användaren avbröt filväljning eller klienten förlorade anslutning 
 						console << "Aborted\n";
 						return;
 					}
@@ -92,30 +89,33 @@ func_map server::get_client_commands()
 				else if (!args.empty()) {
 					msg.data = args;
 				}
-				else {
+				else { // om det inte fanns något argument
 					console << "The syntax of the command is incorrect. try -h\n";
 					return;
 				}
 
 				if (send(*attached, msg)) { // skicka förfrågan 
 					console << "Downloading " << msg.data << "\n";
-					packet response = wait_response("response|" + msg.identifier, attached);
-					if (response.data != "FAIL") {
+					packet response = wait_response("response|" + msg.identifier, attached); // vänta på svar
+					if (response.data != "FAIL") { // om svaret inte är FAIL måste filen finnas på klienten
 						std::filesystem::path fs = msg.data;
+
+						//skapa en mapp för nedladdningar från klienten
 						if (!std::filesystem::is_directory("Downloads_" + attached->name) || std::filesystem::exists("Downloads_" + attached->name)) {
 							std::filesystem::create_directory("Downloads_" + attached->name);
 						}
+						//sätt path filnamnet till desegnerade mappen för klienten
 						std::string filename = std::filesystem::current_path().string() + "\\Downloads_" + attached->name + "\\" + fs.filename().string();
 						console << "Wrote -> " << filename << "\n";
-						std::ofstream file(filename, std::ios::binary);
-						file << response.data;
-						file.close();
+						std::ofstream file(filename, std::ios::binary); // öppna filen i binärt skrivande
+						file << response.data; // skriv fildatan som man tog emot
+						file.close(); // stäng filen
 						console << "Transfer -> Done\n";
 					}
 					else {
 						console << " -> No such file\n";
 					}
-					delete_packet(response);
+					delete_packet(response); // ta bort fil packetet
 				}
 				else { // kunde inte skicka meddelande
 					console << "Could not send request " << args << "\n";

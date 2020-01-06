@@ -28,7 +28,6 @@ void tcp_server::bind()
 
 	Error socket_error = listen_socket;
 
-
 	*log << str_time() << " socket() - " << socket_error.to_string() << "\n";
 	if (socket_error) {
 		throw std::exception(std::string("socket() - " + socket_error.msg).c_str());
@@ -38,8 +37,8 @@ void tcp_server::bind()
 	sockaddr_in service;
 	service.sin_family = AF_INET; // tcp
 	service.sin_port = htons(listen_port); // port
-	service.sin_addr.S_un.S_addr = INADDR_ANY; // vilka adresser
-	Error bind_error = ::bind(listen_socket, (sockaddr*)&service, sizeof(service)); // bind
+	service.sin_addr.S_un.S_addr = INADDR_ANY; // bind socket till alla nätverks interfaces
+	Error bind_error = ::bind(listen_socket, (sockaddr*)&service, sizeof(service)); // bind socket
 	*log << str_time() << " bind() - " << bind_error.to_string() << "\n";
 	if (bind_error) {
 		throw std::exception(std::string("bind() - " + bind_error.msg).c_str());
@@ -87,6 +86,7 @@ bool tcp_server::send(client klient, message meddelande)
 
 std::string tcp_server::str_time()
 {
+	// konvertera tiden till sträng
 	auto n = std::chrono::system_clock::now();
 	auto nc = std::chrono::system_clock::to_time_t(n);
 	std::stringstream ss;
@@ -185,5 +185,6 @@ void tcp_server::accept_user()
 
 void tcp_server::delete_packet(packet p)
 {
+	// ta bort packet från packet_queue
 	packet_queue.erase(std::remove(packet_queue.begin(), packet_queue.end(), p), packet_queue.end());
 }

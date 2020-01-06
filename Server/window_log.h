@@ -1,7 +1,7 @@
 #pragma once
 #include "ui_element.h"
 
-//klass som används som en log eller en read only konsol
+//klass som används som en log eller en read only "konsol"
 class window_log :
 	public ui_element
 {

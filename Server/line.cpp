@@ -41,7 +41,9 @@ size line::get_element_size() const
 void line::draw_element()
 {
 	// funktions pekare som väljer print funktionen beroende på orientationen
+	// detta funkar eftersom att mvwvline och mvwhline har samma argument
 	int (*line_func)(WINDOW*, int, int, chtype, int) = (rotation_ == orientation::vertical) ? mvwvline : mvwhline;
 	
+	//kalla funktionen som den line_func pekar på 
 	line_func(window_.get_window(), position_.y, position_.x, 0, length_);
 }

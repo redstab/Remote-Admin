@@ -98,9 +98,7 @@ void window_log::draw_element()
 			waddch(derived_, chr);
 		}
 	}
-	
-	//mvwaddstr(derived_, 0, 0, buffer.c_str()); // skriv buffer till skärmen 
-	
+
 	// uppdatera fönster
 	refresh();
 	wrefresh(window_.get_window());
