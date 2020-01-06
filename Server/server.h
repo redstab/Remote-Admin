@@ -47,12 +47,15 @@ private:
 	// eftersom att de bygger på funktionalitet från tcp_server
 	func_map get_server_commands();
 	func_map get_client_commands();
+	func_map get_global_commands();
 
 	// för att hantera server specefika kommandon i konsolen
 	func_map server_commands = get_server_commands();
 
 	// för att hantera klient specefika kommandon i konsolen
 	func_map client_commands = get_client_commands();
+
+	func_map global_commands = get_global_commands();
 
 	client* attached; // the currently attached client
 
@@ -74,6 +77,7 @@ private:
 
 	int pick_template(int max_elements, int top_offset, size max_size, std::function<void(int, int)> print_func, std::function<void()> disc_func);
 
-	bool pick_file_attached(std::filesystem::path root, std::string& buffer); // för att välja en fil
+	bool pick_file(std::filesystem::path root, std::string& buffer); // för att välja en fil
+	bool pick_folder(std::filesystem::path root, std::string& buffer); // för att välja en mapp
 	bool pick_client(client*& buffer); // för att välja en fil
 };

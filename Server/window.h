@@ -4,7 +4,7 @@
 
 // klass för att abstraktera WINDOW klassen från ncurses
 // detta gjorde jag för att underlätta och öka säkerheten på programmet genom att wrappa up 
-// en osäker pekare i en klass. Underlättar genom att man kan lätt flytta, gömma och ändra storlek på fönstret
+// en osäker pekare i en klass. Underlättar genom att man kan lätt flytta, gömma fönstret
 // används av ui_element för att ha något att visa elementen på
 class window
 {

@@ -58,7 +58,7 @@ std::string command_line::input(int y)
 			}
 		}
 
-		else if ((key == key == 127 or key == '\b' or key == KEY_BACKSPACE) and count > 0 and (cursor_ + max_size_.y) > (data_.length() / max_lenght_)) { // if backspace + cannot type if scrolling
+		else if ((key == 127 or key == '\b' or key == KEY_BACKSPACE) and count > 0 and (cursor_ + max_size_.y) > (data_.length() / max_lenght_)) { // if backspace + cannot type if scrolling
 			mvwprintw(derived_, y, position_.x + line_count - 2, " "); // ta grafiskt bort sista karaktären
 			input_.pop_back(); // ta bort sista karaktären i buffern
 			--count;

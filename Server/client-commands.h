@@ -11,7 +11,7 @@ func_map server::get_client_commands()
 				[&](std::string value) {
 					attached = nullptr; // peka på null itsället för på en klient
 					console.set_prompt(default_prompt); // sätt tillbaka prompt meddelandet
-					console.set_functions(server_commands); // sätt tillbaka server funktionerna
+					console.set_functions(utility::add(server_commands, global_commands)); // sätt tillbaka server funktionerna
 			}, args, "detach");
 		}},
 
@@ -24,7 +24,7 @@ func_map server::get_client_commands()
 				
 				std::string file;
 				if (arg1 == "-p" || arg2 == "-p") { // om användaren vill välja fil
-					if (pick_file_attached("C:\\", file)) { // låt användaren välja fil och sätt path till file buffer som passas in som referens i funktionen
+					if (pick_file("C:\\", file)) { // låt användaren välja fil och sätt path till file buffer som passas in som referens i funktionen
 						console << "Picked ->" << file << "\n";
 					}
 					else { // om användaren avbröt filväljning eller klienten förlorade anslutning 
@@ -77,8 +77,8 @@ func_map server::get_client_commands()
 				message msg{"download", ""};
 				if (!args.empty() && args == "-p") {  // Om man vill välja en fil att ladda ner
 					std::string buffer;
-					if (pick_file_attached("C:\\", buffer)) {// låt användaren välja fil och sätt path till buffer som passas in som referens i funktionen
-						console << "Picked ->" << buffer << "\n";
+					if (pick_file("C:\\", buffer)) {// låt användaren välja fil och sätt path till buffer som passas in som referens i funktionen
+						console << "Picked ->" << buffer << "\n\n";
 						msg.data = buffer;
 					}
 					else {  // om användaren avbröt filväljning eller klienten förlorade anslutning 
@@ -95,7 +95,7 @@ func_map server::get_client_commands()
 				}
 
 				if (send(*attached, msg)) { // skicka förfrågan 
-					console << "Downloading " << msg.data << "\n";
+					console << "Downloading " << msg.data << "\n\n";
 					packet response = wait_response("response|" + msg.identifier, attached); // vänta på svar
 					if (response.data != "FAIL") { // om svaret inte är FAIL måste filen finnas på klienten
 						std::filesystem::path fs = msg.data;
@@ -106,7 +106,7 @@ func_map server::get_client_commands()
 						}
 						//sätt path filnamnet till desegnerade mappen för klienten
 						std::string filename = std::filesystem::current_path().string() + "\\Downloads_" + attached->name + "\\" + fs.filename().string();
-						console << "Wrote -> " << filename << "\n";
+						console << "Wrote -> " << filename << "\n\n";
 						std::ofstream file(filename, std::ios::binary); // öppna filen i binärt skrivande
 						file << response.data; // skriv fildatan som man tog emot
 						file.close(); // stäng filen
@@ -122,6 +122,12 @@ func_map server::get_client_commands()
 				}
 			}, args, "download");
 		}},
+
+		{"upload", [&](std::string args) { // ladda upp en fil till klienten
+			argument_parser([&](std::string value) {
+				
+			}, args, "upload");
+		} },
 
 	};
 }

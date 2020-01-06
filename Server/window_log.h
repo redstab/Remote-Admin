@@ -11,17 +11,22 @@ public:
 	window_log& operator++(); // vid klass++;
 	window_log& operator--(); // vid klass--;
 	void append(std::string); // för att printa text till konsolen
-	void scroll(int); // för att skrolla konsolen
+	bool scroll(int); // för att skrolla konsolen
 	void clear(); // rensa konsolen
 	//virituella funktioner som ärvs av ui_element
 	size get_element_size() const; 
 	void draw_element();
+
+	void resize(size new_size);
+	void hide() { hidden_ = true; }
+	void unhide() { hidden_ = false; }
 
 	WINDOW* get_derived(); // få tillgång till underliggande fönster buffern
 
 protected:
 	WINDOW* derived_; // barn fönstret till window_.get_window() i ui_element
 	size max_size_; // max storlek för barn fönstret
+	bool hidden_; // om man inte ska kalla draw_element efter varje << 
 	int max_char_count_; // max antal karaktärer i fönstret
 	int max_lenght_; // max längd för en rad
 	int char_count_; // antal karaktärer i buffern

@@ -175,6 +175,7 @@
     <ClInclude Include="command_line.h" />
     <ClInclude Include="curse.h" />
     <ClInclude Include="Error.h" />
+    <ClInclude Include="global-commands.h" />
     <ClInclude Include="input_box.h" />
     <ClInclude Include="line.h" />
     <ClInclude Include="pod.h" />

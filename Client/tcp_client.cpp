@@ -184,7 +184,7 @@ void tcp_client::handle_packet(packet paket)
 		action_map[id](data); // aktivera funktionen förbinden med idet 
 	}
 	else { // annars error
-		std::cout << "handle_packet()" << " [ " << paket.id << "|" << paket.data << "]" << " - " << Error(-2, "kan inte hantera paket") << std::endl;
+		std::cout << "handle_packet()" << " [" << paket.id << "|" << paket.data << "]" << " - " << Error(-2, "kan inte hantera paket") << std::endl;
 	}
 
 }

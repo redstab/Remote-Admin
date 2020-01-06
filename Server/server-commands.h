@@ -34,42 +34,6 @@ func_map server::get_server_commands()
 			}, args, "show");
 		} },
 
-		{ "shutdown", [&](std::string args) { // stäng ner servern 
-			argument_parser(
-				[&](std::string value) {
-					alive = false; // döda packet och client hanteraren
-					console.dö(); // döda konsolen (bara en fancy animation)
-			}, args, "shutdown");
-		} },
-
-		{ "scroll", [&](std::string args) { // skrolla ett fönster
-
-			argument_handler({
-
-				{"log", [&](std::string value) { // skrolla log
-					console << "scrolling " << args;
-					scroll(console_log);
-					console << " -> done\n";
-				}},
-
-				{"command", [&](std::string value) { // skrolla konsolen
-					console << "scrolling " << args;
-					scroll(console);
-					console << " -> done\n";
-				}}
-
-			}, args, "scroll");
-
-		} },
-
-		{ "help", [&](std::string args) { // visa hjälp
-			console << "\n";
-			for (auto [func, doc] : server_help) {
-				console << func << " - " << doc << "\n";
-			}
-			console << "\n";
-		} },
-
 		{ "attach", [&](std::string args) { // attacha en klient till attached
 			argument_parser([&](std::string value) {
 				client* klient = nullptr;
@@ -82,6 +46,15 @@ func_map server::get_server_commands()
 						return;
 					}
 				}
+				else if (args == "-l") {
+					if (clients.get_list().size() != 0) {
+						klient = &clients.get_list().back();
+					}
+					else {
+						console << "No clients connected\n";
+						return;
+					}
+				}
 				else { // annars sök efter argumentet som en klient
 					klient = clients.search(args);
 				}
@@ -89,7 +62,7 @@ func_map server::get_server_commands()
 				if (klient != nullptr) { // found
 					attached = klient;
 					console.set_prompt(attached->name + " $ "); // uppdatera prompt
-					console.set_functions(client_commands); // uppdatera funktioner
+					console.set_functions(utility::add(client_commands, global_commands)); // uppdatera funktioner
 				}
 				else { // !found
 					console << "There is no such client connected to the server\n";
@@ -167,21 +140,5 @@ func_map server::get_server_commands()
 				}
 			}, args, "disconnect");
 		} },
-
-		{ "clear",[&](std::string args) { // rensa ett fönster
-			argument_parser([&](std::string value) {
-				if (args == "log") { // rensa loggen 
-					console_log.clear();
-					console_log.draw_element();
-				}
-				else if (args == "this" || args == "") { // rensa konsolen
-					console.clear();
-					console.draw_element();
-				}
-				else { // args inte en konsol eller fönster
-					console << "Cannot clear a window that does not exsists\n";
-				}
-			}, args, "clear");
-		}}
 	};
 }

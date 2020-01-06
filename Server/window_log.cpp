@@ -5,6 +5,7 @@ window_log::window_log(window& win, point position, size max_size, bool auto_scr
 	auto_scroll_{auto_scroll}, // om man vill auto scrolla
 	char_count_{ 0 },
 	cursor_{ 0 }, 
+	hidden_{false},
 	derived_(derwin(window_.get_window(), max_size.y, max_size.x, position.y, position.x)), // skapa ett fönster barn till ui_elements fönstret
 	max_char_count_{ max_size.x * max_size.y }, // kalkylera maximala karaktärs antalet på en "sida"
 	max_lenght_{ max_size.x }, // maximala rad längd
@@ -15,7 +16,9 @@ window_log::window_log(window& win, point position, size max_size, bool auto_scr
 window_log& window_log::operator<<(std::string input)
 {
 	append(input); // appenda ny sträng vid (klass << sträng;)
-	draw_element();
+	if (!hidden_) {
+		draw_element();
+	}
 	return *this;
 }
 
@@ -50,7 +53,7 @@ void window_log::append(std::string input)
 	}
 }
 
-void window_log::scroll(int sc)
+bool window_log::scroll(int sc)
 {
 	// om längden på skrivna karaktärer är minst lika mycket som max karaktärerna som visas
 	// om antalet karaktärer tills nya cursors är mindre än bufferlängden minus en hel sida och en rad
@@ -59,6 +62,10 @@ void window_log::scroll(int sc)
 	//med dessa vilkor så  kan vi säkert uppdatera cursorn
 	if (data_.length() >= max_char_count_ && (cursor_+sc)*max_lenght_ < data_.length() - max_char_count_ + max_lenght_ && (cursor_+sc) >= 0) {
 		cursor_ += sc;
+		return true;
+	}
+	else {
+		return false;
 	}
 }
 
@@ -103,6 +110,14 @@ void window_log::draw_element()
 	refresh();
 	wrefresh(window_.get_window());
 	wrefresh(derived_);
+}
+
+void window_log::resize(size new_size)
+{
+	wresize(derived_, new_size.y, new_size.x);
+	max_size_ = new_size;
+	max_lenght_ = max_size_.x;
+	max_char_count_ = max_size_.x * max_size_.y;
 }
 
 WINDOW* window_log::get_derived()
