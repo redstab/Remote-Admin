@@ -10,7 +10,8 @@ window_log::window_log(window& win, point position, size max_size, bool auto_scr
 	max_char_count_{ max_size.x * max_size.y }, // kalkylera maximala karaktärs antalet på en "sida"
 	max_lenght_{ max_size.x }, // maximala rad längd
 	max_size_{ max_size }, // max storlek
-	ui_element(win, position)
+	ui_element(win, position),
+	log_level_{LOG_ALL}
 {}
 
 window_log& window_log::operator<<(std::string input)

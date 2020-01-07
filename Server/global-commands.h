@@ -84,6 +84,7 @@ func_map server::get_global_commands()
 			}
 			console << "\n";
 		}},
+
 		{ "clear",[&](std::string args) { // rensa ett fönster
 			argument_parser([&](std::string value) {
 				if (args == "log") { // rensa loggen 
@@ -98,6 +99,35 @@ func_map server::get_global_commands()
 					console << "Cannot clear a window that does not exsists\n";
 				}
 			}, args, "clear");
+		}},
+
+		{"log",[&](std::string args) {
+			argument_parser([&](std::string value) {
+				if (!args.empty()) {
+					std::unordered_map<std::string, int> log_values = {
+						{"info", LOG_INFO},
+						{"verbose", LOG_VERBOSE},
+						{"sverbose", LOG_SUPER_VERBOSE},
+						{"everything", LOG_ALL}
+					};
+
+					auto arguments = argument_slicer(args);
+
+					int log_value = 0;
+
+					for (auto option : arguments) {
+						if (log_values.count(option)) {
+							log_value |= log_values[option];
+						}
+					}
+
+					console_log.set_log_level(log_value);
+				}
+				else {
+					console << "The syntax of the command is incorrect. try log -h\n";
+				}
+
+			}, args, "log");
 		}}
 	};
 }

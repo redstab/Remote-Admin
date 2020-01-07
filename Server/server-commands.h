@@ -93,7 +93,7 @@ func_map server::get_server_commands()
 				else if (args == "all") { // om man vill omanluta alla klienter
 					auto client_list = clients.get_list();
 					for (auto c : client_list) {
-						console_log << str_time() << " disconnect() - [" << std::to_string(c.socket_id) << "|" << c.ip_address << "]\n";
+						console_log.Log<LOG_INFO>(logger() << str_time() << " disconnect() - [" << std::to_string(c.socket_id) << "|" << c.ip_address << "]\n");
 						clients.disconnect_client(c);
 					}
 					console << "Successfully disconnected all clients\n";
@@ -130,7 +130,7 @@ func_map server::get_server_commands()
 					while(!clients.get_list().empty()) { // loopa tills client_listan är tom eller när alla klienter har förlorat anslutningen 
 						client c = clients.get_list().front();
 						send(c, { "exit", " " });
-						console_log << str_time() << " disconnect() - [" << std::to_string(c.socket_id) << "|" << c.ip_address << "]\n";
+						console_log.Log<LOG_INFO>(logger() << str_time() << " disconnect() - [" << std::to_string(c.socket_id) << "|" << c.ip_address << "]\n");
 						clients.disconnect_client(c);
 					}
 					console << "Successfully disconnected all clients\n";

