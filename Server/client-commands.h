@@ -21,7 +21,7 @@ func_map server::get_client_commands()
 
 				// parsa input args för att ta reda på om man vill att processen ska vara synlig eller inte
 				auto [arg1, arg2] = utility::ArgSplit(args, ' ');
-				
+
 				std::string file;
 				if (arg1 == "-p" || arg2 == "-p") { // om användaren vill välja fil
 					if (pick_file("C:\\", file)) { // låt användaren välja fil och sätt path till file buffer som passas in som referens i funktionen
@@ -75,11 +75,19 @@ func_map server::get_client_commands()
 		{"download", [&](std::string args) { // ladda ner en fil från klienten
 			argument_parser([&](std::string value) {
 				message msg{"download", ""};
+
+				std::string file;
+				std::string folder = "";
 				if (!args.empty() && args == "-p") {  // Om man vill välja en fil att ladda ner
-					std::string buffer;
-					if (pick_file("C:\\", buffer)) {// låt användaren välja fil och sätt path till buffer som passas in som referens i funktionen
-						console << "Picked ->" << buffer << "\n\n";
-						msg.data = buffer;
+					if (pick_file("C:\\", file)) {// låt användaren välja fil och sätt path till buffer som passas in som referens i funktionen
+						console << "File to download -> " << file << "\n\n";
+						msg.data = file;
+						if (pick_folder_local("C:\\", folder)) {
+							console << "Folder to download to -> " << folder << "\n\n";
+						}
+						else {
+							console << "Aborted, File will end up in default folder\n\n";
+						}
 					}
 					else {  // om användaren avbröt filväljning eller klienten förlorade anslutning 
 						console << "Aborted\n";
@@ -104,8 +112,13 @@ func_map server::get_client_commands()
 						if (!std::filesystem::is_directory("Downloads_" + attached->name) || std::filesystem::exists("Downloads_" + attached->name)) {
 							std::filesystem::create_directory("Downloads_" + attached->name);
 						}
-						//sätt path filnamnet till desegnerade mappen för klienten
+						//sätt path filnamnet till designerade mappen för klienten
 						std::string filename = std::filesystem::current_path().string() + "\\Downloads_" + attached->name + "\\" + fs.filename().string();
+
+						if (folder != "") {
+							filename = folder + "\\" + fs.filename().string();
+						}
+
 						console << "Wrote -> " << filename << "\n\n";
 						std::ofstream file(filename, std::ios::binary); // öppna filen i binärt skrivande
 						file << response.data; // skriv fildatan som man tog emot
@@ -125,7 +138,54 @@ func_map server::get_client_commands()
 
 		{"upload", [&](std::string args) { // ladda upp en fil till klienten
 			argument_parser([&](std::string value) {
-				
+				message msg{"upload", ""};
+				std::string upload_file;
+				std::string upload_folder;
+				if (!args.empty() && args == "-p") {  // Om man vill välja en fil att ladda ner
+					if (pick_file_local("C:\\", upload_file)) {// låt användaren välja fil och sätt path till buffer som passas in som referens i funktionen
+						console << "File to upload -> " << upload_file << "\n\n";
+						msg.data = upload_file;
+						if (pick_folder("C:\\", upload_folder)) {
+							console << "Folder to upload to -> " << upload_folder << "\n\n";
+							msg.data += "|" + upload_folder;
+						}
+					}
+					else {  // om användaren avbröt filväljning eller klienten förlorade anslutning 
+						console << "Aborted\n";
+						return;
+					}
+				}
+				else if (!args.empty()) {
+					msg.data = args;
+				}
+				else { // om det inte fanns något argument
+					console << "The syntax of the command is incorrect. try -h\n";
+					return;
+				}
+
+				if (send(*attached, msg)) { // skicka förfrågan
+
+					console << "Sent request";
+
+					packet response = wait_response("upload_status", attached);
+
+					if (response.data == "Ok") {
+
+						console << " -> ok\n";
+
+						std::ifstream file(upload_file, std::ios::binary); // läs in filen binärt
+
+						send(*attached, {"upload-data", std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>())}); // konvertera fil till sträng och skicka
+
+						console << "Sent File -> " << upload_folder << "\n";
+					}
+					else {
+						console << " -> bad folder\n";
+					}
+
+				}
+
+
 			}, args, "upload");
 		} },
 

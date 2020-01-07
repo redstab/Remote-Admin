@@ -17,8 +17,8 @@ func_map server::get_global_commands()
 					console_log.hide();
 					// ny storlek så att konsolen tar hela skärmen
 					console.resize({ window_.get_size().x - 2, console.get_element_size().y });
-					console << "\n"; // padda ut resten av skärmen som logger befanns sig på
-					console.draw_element(); // skriv ut konsolen igen
+					console.clear();
+					console.redraw_element(); // skriv ut konsolen igen
 				}}
 
 			}, args, "hide");
@@ -50,8 +50,9 @@ func_map server::get_global_commands()
 			argument_handler({
 
 				{"log", [&](std::string value) { // skrolla log
-					if (value == "reset") {
+					if (value == "reset") { // om man ska reseta scrollen till botten
 						while (console_log.scroll(1)) {}
+						console_log.draw_element();
 					}
 					else {
 						console << "scrolling " << args;
@@ -61,8 +62,9 @@ func_map server::get_global_commands()
 				}},
 
 				{"command", [&](std::string value) { // skrolla konsolen
-					if (value == "reset") {
-						while (console_log.scroll(1)) {}
+					if (value == "reset") { // om man ska reseta scrollen till botten
+						while (console.scroll(1)) {}
+						console.draw_element();
 					}
 					else {
 						console << "scrolling " << args;

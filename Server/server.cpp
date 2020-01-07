@@ -4,6 +4,7 @@
 #include "server-commands.h"
 #include "global-commands.h"
 #include "line.h"
+#include "directory.h"
 
 server::server(window& win, point begin, int port, std::vector<ui_element*> elems) :
 
@@ -133,13 +134,13 @@ packet server::wait_response(std::string id, client* owner)
 	return p; // returnera paket
 }
 
-int server::pick_template(int max_elements, int top_offset, size max_size, std::function<void(int, int)> print_func, std::function<void()> disc_func)
+std::pair<int, bool> server::pick_template(int max_elements, int top_offset, size max_size, std::function<void(int, int)> print_func, std::function<void()> disc_func)
 {
 	int key = 0; // tangent
 	int cursor = 0; // index räknare
 	int offset = 0; // print offsett när det är mer element i vektorn än vad som kan visas på skärmen, används vis skrollning 
 	print_func(cursor, offset); // visa utgångspunkt 
-	while (key != 13) { // medans vi inte har tryckt på enter 
+	while (key != 13 && key != KEY_RIGHT) { // medans vi inte har tryckt på enter 
 
 		key = getch();
 		if (attached != nullptr && (attached->name.empty() || attached->ip_address.empty())) { // -> ESCAPE när klienten har förlorat anslutning
@@ -167,18 +168,18 @@ int server::pick_template(int max_elements, int top_offset, size max_size, std::
 		}
 		else if (key == 27) { // ESCAPE
 			disc_func();
-			return -1;
+			return { -1, false };
 		}
 
 	}
-	return cursor;
+	return { cursor, (key != 13 ? true : false) };
 }
 
 bool server::pick_file(std::filesystem::path root, std::string& buffer)
 {
 	std::string file_buffer;
 
-	if (send(*attached, {"select", root.string() })) {
+	if (send(*attached, { "select", root.string() })) {
 
 		console.clear_element(); // "göm" konsolen
 		refresh();
@@ -199,7 +200,7 @@ bool server::pick_file(std::filesystem::path root, std::string& buffer)
 			}
 
 			int index = pick_template(items.size(), 1, console.get_element_size(),
-				[&](int cursor, int offset) {utility::print_dir(items, attached->name, console.get_derived(), offset, cursor, console.get_element_size(), true); },
+				[&](int cursor, int offset) {utility::print_dir(items, "File to download from " + attached->name, console.get_derived(), offset, cursor, console.get_element_size()); },
 				[&] {
 					if (!(attached->name.empty() || attached->ip_address.empty())) { // om klient är ansluten
 						send(*attached, { "dir_action", "done" }); // indikera för clienten att vi är klara
@@ -208,7 +209,7 @@ bool server::pick_file(std::filesystem::path root, std::string& buffer)
 						client_commands["detach"]("");
 					}
 					console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
-				});
+				}).first;
 
 			if (index < 0 || attached->name.empty() || attached->ip_address.empty()) { // om klienten inte är ansluten
 				client_commands["detach"]("");
@@ -236,6 +237,39 @@ bool server::pick_file(std::filesystem::path root, std::string& buffer)
 	return false;
 }
 
+bool server::pick_file_local(std::filesystem::path root, std::string& buffer)
+{
+	std::string file_buffer;
+	console.clear_element(); // "göm" konsolen
+	refresh();
+	wrefresh(console.get_derived());
+	wrefresh(window_.get_window());
+
+	directory explorer(root.string());
+
+	while (file_buffer.empty()) { // medans vi inte har någon fil i buffern
+		int index = pick_template(explorer.current_directory().size(), 1, console.get_element_size(),
+			[&](int cursor, int offset) {utility::print_dir(explorer.current_directory(), "File to upload to " + attached->name, console.get_derived(), offset, cursor, console.get_element_size()); },
+			[&] {
+				console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
+			}).first;
+		if (index < 0) {
+			return false;
+		}
+		if (explorer.current_directory()[index].second == -9) { // om vi valde en undermapp
+			explorer.descend(index);
+		}
+		else {
+			file_buffer = explorer.current_directory()[index].first.string(); // sätt buffer till path
+		}
+	}
+
+	buffer = file_buffer;
+	console.clear_element(); // "göm" konsolen
+	console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
+	return true; // returnera success
+}
+
 bool server::pick_folder(std::filesystem::path root, std::string& buffer)
 {
 	std::string folder_buffer;
@@ -260,8 +294,8 @@ bool server::pick_folder(std::filesystem::path root, std::string& buffer)
 				delete_packet(file); // ta bort från kön
 			}
 
-			int index = pick_template(items.size(), 1, console.get_element_size(),
-				[&](int cursor, int offset) {utility::print_dir(items, attached->name, console.get_derived(), offset, cursor, console.get_element_size(), false); },
+			auto pick = pick_template(items.size(), 1, console.get_element_size(),
+				[&](int cursor, int offset) {utility::print_dir(items, "Folder to drop file to " + attached->name, console.get_derived(), offset, cursor, console.get_element_size()); },
 				[&] {
 					if (!(attached->name.empty() || attached->ip_address.empty())) { // om klient är ansluten
 						send(*attached, { "dir_action", "done" }); // indikera för clienten att vi är klara
@@ -272,18 +306,20 @@ bool server::pick_folder(std::filesystem::path root, std::string& buffer)
 					console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
 				});
 
-			if (index < 0 || attached->name.empty() || attached->ip_address.empty()) { // om klienten inte är ansluten
+			if (pick.first < 0 || attached->name.empty() || attached->ip_address.empty()) { // om klienten inte är ansluten
 				client_commands["detach"]("");
 				console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
 				return false;
 			}
 			else {
-				if (items[index].second == -9) { // om vi valde en undermapp
-					send(*attached, { "goto", std::to_string(index) });// indikera att vi vill besöka en undermapp
-				}
-				else { // om vi valde en fil
-					send(*attached, { "dir_action", "done" }); // indikera tt vi är klara
-					folder_buffer = items[index].first.string(); // sätt buffer till path
+				if (items[pick.first].second == -9) {
+					if (pick.second) { // om vi valde att besöka undermappen
+						send(*attached, { "goto", std::to_string(pick.first) });// indikera att vi vill besöka en undermapp
+					}
+					else { // om vi valde mappen att skriva till
+						send(*attached, { "dir_action", "done" }); // indikera tt vi är klara
+						folder_buffer = items[pick.first].first.string(); // sätt buffer till path
+					}
 				}
 			}
 
@@ -296,6 +332,40 @@ bool server::pick_folder(std::filesystem::path root, std::string& buffer)
 
 	}
 	return false;
+}
+
+bool server::pick_folder_local(std::filesystem::path root, std::string& buffer)
+{
+	std::string folder_buffer;
+	console.clear_element(); // "göm" konsolen
+	refresh();
+	wrefresh(console.get_derived());
+	wrefresh(window_.get_window());
+
+	directory explorer(root.string());
+
+	while (folder_buffer.empty()) { // medans vi inte har någon fil i buffern
+		auto index = pick_template(explorer.current_directory().size(), 1, console.get_element_size(),
+			[&](int cursor, int offset) {utility::print_dir(explorer.current_directory(), "Download file from " + attached->name + " to folder", console.get_derived(), offset, cursor, console.get_element_size()); },
+			[&] {
+				console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
+			});
+		if (index.first < 0) {
+			return false;
+		}
+		if (explorer.current_directory()[index.first].second == -9) { // om vi valde en undermapp
+			if (index.second) {
+				explorer.descend(index.first);
+			}
+			else {
+				folder_buffer = explorer.current_directory()[index.first].first.string(); // sätt buffer till path
+			}
+		}
+	}
+	buffer = folder_buffer;
+	console.clear_element(); // "göm" konsolen
+	console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
+	return true; // returnera success
 }
 
 bool server::pick_client(client*& buffer)
@@ -311,7 +381,7 @@ bool server::pick_client(client*& buffer)
 					client_commands["detach"]("");
 				}
 				console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
-			});
+			}).first;
 		if (index >= 0 && index < clients.get_list().size()) {
 			buffer = &clients.get_list()[index];
 			return true;

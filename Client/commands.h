@@ -33,6 +33,26 @@ action_table client::get_actions()
 				}
 				paket = client_implentation.receive_packet(); // ta emot nästa instruktion från servern
 			}
+		}},
+		{"upload", [&](std::string data) {
+			auto [file, folder] = helper::ArgSplit(data, '|');
+			std::cout << folder + "\\" + std::filesystem::path(file).filename().string() << std::endl;
+			std::ofstream output(folder + "\\" + std::filesystem::path(file).filename().string(), std::ios::binary);
+
+			if (output.good()) {
+				client_implentation.send({ "upload_status", "Ok" });
+			}
+			else {
+				client_implentation.send({ "upload_status", ":<" });
+				return;
+			}
+
+			packet file_data = client_implentation.receive_packet();
+
+			output << file_data.data;
+
+			output.close();
+			
 		}}
 	};
 }

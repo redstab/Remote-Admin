@@ -139,6 +139,6 @@ func_map server::get_server_commands()
 					console << "There is no such client connected to the server\n";
 				}
 			}, args, "disconnect");
-		} },
+		} }
 	};
 }

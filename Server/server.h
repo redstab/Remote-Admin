@@ -75,9 +75,11 @@ private:
 
 	packet wait_response(std::string id, client* owner); // väntar tills en respons från klienten finns i packet_queue
 
-	int pick_template(int max_elements, int top_offset, size max_size, std::function<void(int, int)> print_func, std::function<void()> disc_func);
+	std::pair<int,bool> pick_template(int max_elements, int top_offset, size max_size, std::function<void(int, int)> print_func, std::function<void()> disc_func);
 
-	bool pick_file(std::filesystem::path root, std::string& buffer); // för att välja en fil
-	bool pick_folder(std::filesystem::path root, std::string& buffer); // för att välja en mapp
-	bool pick_client(client*& buffer); // för att välja en fil
+	bool pick_file(std::filesystem::path root, std::string& buffer); // för att välja en fil hos klient
+	bool pick_file_local(std::filesystem::path root, std::string& buffer); // för att välja en fil hos server
+	bool pick_folder(std::filesystem::path root, std::string& buffer); // för att välja en mapp hos klient
+	bool pick_folder_local(std::filesystem::path root, std::string& buffer); // för att välja en mapp hos server
+	bool pick_client(client*& buffer); // för att välja en klient
 };

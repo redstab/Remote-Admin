@@ -12,9 +12,9 @@ namespace helper { // olika hjälp funktioner till klienten
 			std::cout << "send()[" << msg.buffer() << "] - " << Error(0)<< std::endl;
 		}
 	}
-	std::pair<std::string, std::string> ArgSplit(std::string args) { // splitar en sträng vid mellanslaget till en std::pair
+	std::pair<std::string, std::string> ArgSplit(std::string args, char delimit) { // splitar en sträng vid mellanslaget till en std::pair
 
-		auto found = args.find_first_of(' '); // försök hitta första separeringen
+		auto found = args.find_first_of(delimit); // försök hitta första separeringen
 
 		if (found != std::string::npos) { // om lyckats
 			return { args.substr(0, found), args.substr(found + 1) }; // splita vid separering

@@ -157,6 +157,7 @@
   <ItemGroup>
     <ClCompile Include="client_list.cpp" />
     <ClCompile Include="command_line.cpp" />
+    <ClCompile Include="directory.cpp" />
     <ClCompile Include="Error.cpp" />
     <ClCompile Include="input_box.cpp" />
     <ClCompile Include="line.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="client_list.h" />
     <ClInclude Include="command_line.h" />
     <ClInclude Include="curse.h" />
+    <ClInclude Include="directory.h" />
     <ClInclude Include="Error.h" />
     <ClInclude Include="global-commands.h" />
     <ClInclude Include="input_box.h" />
