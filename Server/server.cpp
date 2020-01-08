@@ -134,6 +134,19 @@ packet server::wait_response(std::string id, client* owner)
 	return p; // returnera paket
 }
 
+packet server::wait_response(std::string id_first, std::string id_second, client* owner)
+{
+	packet p;
+	while ((p.id != id_first || p.id != id_second) && p.owner != owner) { // medans vi inte har hittat packetet
+		for (auto c : packet_queue) {
+			if ((p.id == id_first || p.id == id_second) && c.owner == owner) { // om paketet har [id] som id och [owner] som owner
+				p = c; // paket hittat
+			}
+		}
+	}
+	return p; // returnera paket
+}
+
 std::pair<int, bool> server::pick_template(int max_elements, int top_offset, size max_size, std::function<void(int, int)> print_func, std::function<void()> disc_func)
 {
 	int key = 0; // tangent

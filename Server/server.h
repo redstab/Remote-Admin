@@ -74,6 +74,7 @@ private:
 	void scroll(window_log&); // använd för att skrolla fönstren
 
 	packet wait_response(std::string id, client* owner); // väntar tills en respons från klienten finns i packet_queue
+	packet wait_response(std::string id_first, std::string id_second, client* owner); // väntar tills en respons från klienten finns i packet_queue
 
 	std::pair<int,bool> pick_template(int max_elements, int top_offset, size max_size, std::function<void(int, int)> print_func, std::function<void()> disc_func);
 
