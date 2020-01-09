@@ -89,8 +89,8 @@ bool tcp_server::send(client klient, message meddelande)
 	// med meddelande strukturen ex{ data: KS, id: HELLOWORLD } skapas meddelande buffer som ser ungefär ut så här [id-size][data-size][id][data]: 000000000000010000000000000002HELLOWORLDKS
 	std::string buffer = meddelande.buffer();
 	Error send_error = ::send(klient.socket_id, buffer.c_str(), buffer.length(), 0);
-	log->Log<LOG_INFO>(logger() << str_time() << " send(" << klient.socket_id << ", " << meddelande.identifier << "|" << meddelande.data.substr(0, 10) << ") - " << (send_error != 0 ? "fail" : "success") << "\n");
-	return !send_error; // Kolla efter error och skicka packet
+	log->Log<LOG_INFO>(logger() << str_time() << " send(" << klient.socket_id << ", " << meddelande.identifier << "|" << meddelande.data.substr(0, 10) << ") - " << (send_error != SOCKET_ERROR ? "fail" : "success") << "\n");
+	return send_error != SOCKET_ERROR; // Kolla efter error och skicka packet
 }
 
 std::string tcp_server::str_time()
@@ -185,7 +185,7 @@ bool tcp_server::readable(SOCKET sock, int sec, int milli)
 	timeval timeout{ sec, milli };
 	int readable_sockets = select(0, &socket_descriptor, nullptr, nullptr, &timeout);
 	// select returnerar hur många sockets i file-descriptor settet är läsbara, eftersom att fd-settet innehåller 1 socket så returnerar funktionen true om läsbar och 0 om inte läsbar
-	if (readable_sockets >= 1) {
+	if (readable_sockets == 1) {
 		log->Log<LOG_SUPER_VERBOSE>(logger() << "\n" << str_time() << " select(" << sec << "s, " << milli << "ms) -> true\n");
 		return true;
 	}

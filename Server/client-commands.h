@@ -194,7 +194,7 @@ func_map server::get_client_commands()
 			std::string cwd = R"(C:\Windows\System32)";
 			message msg{ "shell-init", "" };
 			if (args == "cmd") {
-				shell = R"(C:\Windows\System32\cmd.exe)";
+				shell = R"(C:\Windows\System32\cmd.exe /K ping 127.0.0.1 -n 5)";
 			}
 			else if (args == "powershell") {
 				shell = R"(C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe)";
@@ -211,15 +211,50 @@ func_map server::get_client_commands()
 
 			msg.data = shell + "|" + cwd;
 
-			console_log.Log<LOG_INFO>(logger() << str_time() << " Shell-Process-Test\n" << str_time() << "  Process:" << shell  << "\n" << str_time() << "  CWD:" << cwd<< " \n");
+			console_log.Log<LOG_INFO>(logger() << str_time() << " Shell-Process-Start\n" << str_time() << "  Process:" << shell  << "\n" << str_time() << "  CWD:" << cwd<< " \n");
 
 			if (send(*attached, msg)) {
 				packet response = wait_response("shell-status", attached); // vänta på konfirmation
-
+				
 				if (response.data == "OK") {
+					delete_packet(response);
+					bool alive = true;
+					bool ready = false;
+					console << "(Status) Success: Shell started\n";
+
+					std::thread read_thread([&] {
+						while (alive) {
+							packet read_data = wait_response("shell-read", "shell-status", attached);
+
+							if (read_data.id == "shell-read") { // shell-read -> printa
+								console << read_data.data;
+							}
+							else if (read_data.id == "shell-status" ) {// shell-status -> dö
+								alive = false;
+							}
+
+							delete_packet(read_data);
+						}
+					});
+
+					while (alive) {
+						packet read_data = wait_response("shell-ready", attached);	
+						if (read_data.data != "died") {
+							std::string console_input = console.input_str(false) + "\n"; // padda process prompten och ta input därifrån
+							send(*attached, { "shell-input", console_input });
+						}
+						else {
+							alive = false;
+						}
+						delete_packet(read_data);
+					}
+
+					read_thread.join();
+					console << "\n\n(Status) Success Process Exited\n";
 				}
 				else {
-					console << "(Status) Failed: Bad Process or cwd\n";
+					console << "(Status) Failed: " << response.data << "\n";
+					delete_packet(response);
 					return;
 				}
 

@@ -22,7 +22,7 @@ public:
 	bool ready();
 
 	void read(std::function<void(std::string)>);
-	
+
 	bool write(std::string);
 
 	bool alive();

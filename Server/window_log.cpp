@@ -40,10 +40,10 @@ void window_log::append(std::string input)
 	for (auto c : input) {
 		if (c == '\n') { // om det är en ny linje så måste vi konvertera den till mellanslag eftersom att vi måste hålla räkning på karaktärer
 			int rem = max_lenght_ - data_.length() % max_lenght_; // ta reda på hur många karkatärer som är kvar tills slutet på linjen eftersom att derived_ är ett WINDOW* så kommer den att ha word-wrapping. Allstå måste vi endast mellanslag till en linje (diff: max-längd på linje - skrivna karakrärer på linjen)
-			data_ += std::string(rem, ' ');
+			data_ += std::string(rem, ' '); // padda till slutet av linjen
 			char_count_ += rem;
 		}
-		else {
+		else if(c != '\r'){ // om karaktären är något vi kan skriva ut
 			data_ += c;
 			char_count_ += 1;
 		}

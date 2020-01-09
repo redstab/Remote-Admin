@@ -5,11 +5,11 @@
 client::client(std::string ip, int port) : //simpel konstruktor
 	ip_{ ip }, 
 	port_{port}, 
-	client_implentation(ip_, port_)
+	client_implementation(ip_, port_)
 {
-	client_implentation.set_disconnect_action([&] {startup(); });
-	client_implentation.set_actions(actions_);
-	client_implentation.set_responses(responses_);
+	client_implementation.set_disconnect_action([&] {startup(); });
+	client_implementation.set_actions(actions_);
+	client_implementation.set_responses(responses_);
 }
 
 void client::connect()
@@ -20,7 +20,7 @@ void client::connect()
 	std::cout << "connect()[@" << tries << "]";
 
 	while (!connected) { // medans inte ansluten
-		connected = client_implentation.connect(); //försök ansluta 
+		connected = client_implementation.connect(); //försök ansluta 
 		tries += 1; // lägg till ett försök
 		std::cout << std::string(std::to_string(tries-1).length()+1, '\b') <<  tries << "]"; // skriv antal försök
 	}
@@ -34,10 +34,10 @@ void client::connect()
 void client::startup() //kallas vid förlorad anslutning
 {
 	std::cout << "disconnect() - " << Error(0) << std::endl;
-	client_implentation = tcp_client(ip_, port_); //skapa ny instans
-	client_implentation.set_disconnect_action([&] {startup(); });
-	client_implentation.set_actions(actions_);
-	client_implentation.set_responses(responses_);
+	client_implementation = tcp_client(ip_, port_); //skapa ny instans
+	client_implementation.set_disconnect_action([&] {startup(); });
+	client_implementation.set_actions(actions_);
+	client_implementation.set_responses(responses_);
 	std::cout << "attempting_reconnect()\n";
 	connect(); // anslut
 }

@@ -20,14 +20,14 @@ public:
 	/// <summary>
 	/// Starta paket_loop
 	/// </summary>
-	void run_packet_handler() { client_implentation.paket_loop(); }
+	void run_packet_handler() { client_implementation.paket_loop(); }
 
 private:
 
 	std::string ip_; // anslutnigs ip
 	int port_; // anslutnings port
 
-	tcp_client client_implentation; // client instans som ominitializeras när den förlorar anslutning
+	tcp_client client_implementation; // client instans som ominitializeras när den förlorar anslutning
 
 	response_table get_responses();
 	action_table get_actions();

@@ -20,11 +20,9 @@ bool shell_process::open()
 	info_.hStdOutput = output_write;
 	info_.hStdInput = input_read;
 	info_.hStdError = output_write;
-	
-	//skapa process
-	//!CreateProcessA(0, (LPSTR)properties_.application.c_str(), 0, 0, properties_.handle_inherit, properties_.startup, 0, 0, &info_, &process_);
 
-	return CreateProcessA(0, (LPSTR)properties_.application.c_str(), 0, 0, properties_.handle_inherit, properties_.startup, 0, 0, &info_, &process_); // Vänta tills applicationen är skrivbar
+	//skapa process
+	return CreateProcessA(0, (LPSTR)properties_.application.c_str(), 0, 0, properties_.handle_inherit, properties_.startup, 0, properties_.working_directory.c_str(), &info_, &process_); // Vänta tills applicationen är skrivbar
 }
 
 void shell_process::ctrl_c()
@@ -38,7 +36,7 @@ void shell_process::ctrl_c()
 }
 
 bool shell_process::ready() {
-	return !WaitForSingleObject(input_read, 0);
+	return WaitForSingleObject(input_read, 0);
 }
 
 void shell_process::read(std::function<void(std::string)> output_func)
@@ -52,8 +50,8 @@ void shell_process::read(std::function<void(std::string)> output_func)
 				std::cout << "ReadFile() -> " << GetLastError() << std::endl;
 			}
 		}
-
 		output_func(std::string(output.begin(), output.end()));
+
 	}
 }
 

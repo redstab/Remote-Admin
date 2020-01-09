@@ -25,27 +25,27 @@ bool command_line::alive() // konsolen är vid liv?
 	return alive_;
 }
 
-std::string command_line::input_str()
+std::string command_line::input_str(bool print_input)
 {
-	std::string old_prompt = prompt_;
-	prompt_ = "";
-	std::string command = input((data_.length() / max_lenght_) - cursor_);
-	*this << command;
-	prompt_ = old_prompt;
+	std::string command = input(-1); // -1 för att ta input vid sista linjen skriven
+	if (print_input) {
+		*this << command;
+	}
 	return command;
 }
 
 std::string command_line::input(int y)
 {
 	std::string input_ = ""; // buffer för inputen
-	int key = 0;
+	int key = getch(); 
+	if (y == -1) { // sista linjen skriven
+		y = (data_.length() / max_lenght_) - cursor_; //ta input från antal linjer ner man befinner sig minus vilken plats cursorn har, detta gör så att man alltid befinner sig i fönstret med kordinaterna
+	}
 	int count = 0; // för att hålla koll så att vi inte skriver för mycket
 	int line_length = max_size_.x; // max längden per linje 
 	int remaining_chars = max_char_count_ - (y * line_length) - prompt_.length();
-	int line_count = prompt_.length(); // för att hålla koll så att vi uppdaterar y när man har skrivit hela raden, startar på prompt_.length för att kompensera för prompt meddelandet
+	int line_count = data_.length() % line_length; // för att hålla koll så att vi uppdaterar y när man har skrivit hela raden, startar på prompt_.length för att kompensera för prompt meddelandet
 	while (key != 13 || input_ == "") { // medans key inte är enter eller buffer är tom
-
-		key = getch();
 
 		if (key >= 32 and key <= 126 and count < remaining_chars and (cursor_ + max_size_.y) > (static_cast<int>(data_.length()) / max_lenght_)) { // if alnum + cannot type if scrolling 
 			input_.push_back(key); // lägg till en karaktär i buffern 
@@ -84,6 +84,8 @@ std::string command_line::input(int y)
 		refresh(); // uppdatera fönstret
 		wrefresh(window_.get_window());
 		wrefresh(derived_);
+
+		key = getch();
 	}
 	key = 0;
 	return input_;
