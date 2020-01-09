@@ -10,6 +10,7 @@
 #include <sstream>
 #include <algorithm>
 #include <fstream>
+#include <thread>
 #include <filesystem>
 #include <functional>
 #pragma comment (lib, "ws2_32.lib")

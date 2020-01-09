@@ -22,9 +22,9 @@ bool shell_process::open()
 	info_.hStdError = output_write;
 	
 	//skapa process
-	CreateProcessA(0, (LPSTR)properties_.application.c_str(), 0, 0, properties_.handle_inherit, properties_.startup, 0, 0, &info_, &process_);
+	//!CreateProcessA(0, (LPSTR)properties_.application.c_str(), 0, 0, properties_.handle_inherit, properties_.startup, 0, 0, &info_, &process_);
 
-	return WaitForInputIdle(process_.hProcess, INFINITE); // Vänta tills applicationen är skrivbar
+	return CreateProcessA(0, (LPSTR)properties_.application.c_str(), 0, 0, properties_.handle_inherit, properties_.startup, 0, 0, &info_, &process_); // Vänta tills applicationen är skrivbar
 }
 
 void shell_process::ctrl_c()
@@ -38,7 +38,7 @@ void shell_process::ctrl_c()
 }
 
 bool shell_process::ready() {
-	return WaitForSingleObject(input_read, 0);
+	return !WaitForSingleObject(input_read, 0);
 }
 
 void shell_process::read(std::function<void(std::string)> output_func)

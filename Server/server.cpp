@@ -68,7 +68,7 @@ void server::argument_handler(func_map fm, std::string args, std::string func)
 		return;
 	}
 
-	for (int i = 0; i < arguments.size(); i += 2) {
+	for (int i = 0; i < static_cast<int>(arguments.size()); i += 2) {
 		// in the vector: arg, value, arg1, value1
 		// so we use loop with i += 2 to get every argument and value pair
 		std::string argument = arguments[i];
@@ -139,7 +139,7 @@ packet server::wait_response(std::string id_first, std::string id_second, client
 	packet p;
 	while ((p.id != id_first || p.id != id_second) && p.owner != owner) { // medans vi inte har hittat packetet
 		for (auto c : packet_queue) {
-			if ((p.id == id_first || p.id == id_second) && c.owner == owner) { // om paketet har [id] som id och [owner] som owner
+			if ((c.id == id_first || c.id == id_second) && c.owner == owner) { // om paketet har [id] som id och [owner] som owner
 				p = c; // paket hittat
 			}
 		}
@@ -395,7 +395,7 @@ bool server::pick_client(client*& buffer)
 				}
 				console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
 			}).first;
-		if (index >= 0 && index < clients.get_list().size()) {
+		if (index >= 0 && index < static_cast<int>(clients.get_list().size())) {
 			buffer = &clients.get_list()[index];
 			return true;
 		}

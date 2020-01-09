@@ -47,7 +47,7 @@ std::string command_line::input(int y)
 
 		key = getch();
 
-		if (key >= 32 and key <= 126 and count < remaining_chars and (cursor_ + max_size_.y) >(data_.length() / max_lenght_)) { // if alnum + cannot type if scrolling 
+		if (key >= 32 and key <= 126 and count < remaining_chars and (cursor_ + max_size_.y) > (static_cast<int>(data_.length()) / max_lenght_)) { // if alnum + cannot type if scrolling 
 			input_.push_back(key); // lägg till en karaktär i buffern 
 			mvwprintw(derived_, y, position_.x + line_count - 1, std::string(1, key).c_str()); // lägg grafiskt till en karaktär
 			++count;
@@ -58,7 +58,7 @@ std::string command_line::input(int y)
 			}
 		}
 
-		else if ((key == 127 or key == '\b' or key == KEY_BACKSPACE) and count > 0 and (cursor_ + max_size_.y) > (data_.length() / max_lenght_)) { // if backspace + cannot type if scrolling
+		else if ((key == 127 or key == '\b' or key == KEY_BACKSPACE) and count > 0 and (cursor_ + max_size_.y) > (static_cast<int>(data_.length()) / max_lenght_)) { // if backspace + cannot type if scrolling
 			mvwprintw(derived_, y, position_.x + line_count - 2, " "); // ta grafiskt bort sista karaktären
 			input_.pop_back(); // ta bort sista karaktären i buffern
 			--count;
@@ -70,13 +70,15 @@ std::string command_line::input(int y)
 		}
 
 		else if (key == KEY_PPAGE) { // if pageup => scroll up
-			scroll(-1);
-			draw_element(); // updatera konsolen
+			if (scroll(-1)) {
+				draw_element(); // updatera konsolen
+			}
 		}
 
 		else if (key == KEY_NPAGE) { // if pagedown => scroll down
-			scroll(1);
-			draw_element(); // uppdatera konsolen
+			if (scroll(1)) {
+				draw_element(); // uppdatera konsolen
+			}
 		}
 
 		refresh(); // uppdatera fönstret

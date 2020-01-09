@@ -20,6 +20,6 @@ void title::set_text(const std::string& txt)
 
 void title::draw_element()
 {
-	point new_position = { (window_.get_size().x / 2 - get_text().length()/2), position_.y }; // kalkylera position för att centerera text
+	point new_position = { (window_.get_size().x / 2 - static_cast<int>(get_text().length())/2), position_.y }; // kalkylera position för att centerera text
 	mvwprintw(window_.get_window(), new_position.y, new_position.x, get_text().c_str()); // skriv text
 }

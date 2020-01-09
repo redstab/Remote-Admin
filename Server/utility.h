@@ -28,7 +28,7 @@ namespace utility {
 			if (i == selected) {
 				wattron(win, A_REVERSE); // om i är selected så byt färg
 			}
-			if (i < items.size()) {
+			if (i < static_cast<int>(items.size())) {
 				if (items[i].second == -9) { // mapp
 					mvwprintw(win, i + 1 - offset, 0, std::string("%-" + std::to_string(max_size.x) + "s").c_str(), ("/" + items[i].first.filename().string()).c_str());
 				}
@@ -74,7 +74,7 @@ namespace utility {
 			if (i == selected) { 
 				wattron(win, A_REVERSE); // om i är selected så byt färg
 			}
-			if (i < items.size()) {
+			if (i < static_cast<int>(items.size())) {
 				//använd printf format för att skapa en tabell 
 				mvwprintw(win, i + top_pad - offset, 0, format.c_str(), max_id, items[i].socket_id, max_name, items[i].name.c_str(), (max_size.x - max_id - max_name), items[i].ip_address.c_str());
 			}

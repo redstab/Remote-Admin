@@ -156,6 +156,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="error.cpp" />
     <ClCompile Include="process.cpp" />
+    <ClCompile Include="shell_process.cpp" />
     <ClCompile Include="tcp_client.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -167,6 +168,7 @@
     <ClInclude Include="payloads.h" />
     <ClInclude Include="precompile.h" />
     <ClInclude Include="process.h" />
+    <ClInclude Include="shell_process.h" />
     <ClInclude Include="tcp_client.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

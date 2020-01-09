@@ -14,7 +14,7 @@ void input_box::edit() // för att ändra input
 			mvwprintw(window_.get_window(), position_.y, position_.x + count, std::string(1, key).c_str()); // skriv ut karaktären
 			++count; // uppdatera räknare
 		}
-		else if ((key == key == 127 or key == '\b' or key == KEY_BACKSPACE) && count > 0) { // om tangenten är backspace och count är större än noll
+		else if ((key == 127 or key == '\b' or key == KEY_BACKSPACE) && count > 0) { // om tangenten är backspace och count är större än noll
 			mvwprintw(window_.get_window(), position_.y, position_.x + count - 1, " "); // skriv ut mellanslag där karaktären var
 			content_.erase(count - 1, 1); // ta bort från buffern
 			--count; // uppdatera räknare

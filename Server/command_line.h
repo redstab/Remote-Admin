@@ -1,5 +1,6 @@
 #pragma once
-#include "window_log.h";
+#include "precompile.h"
+#include "window_log.h"
 
 using func_map = std::unordered_map<std::string, std::function<void(std::string)>>; // alias för en map/dictionary med nyckeln string och datan en funktion som returnerar void men tar emot en sträng som parameter
 //används för att skapa en konsol i en viss del av skärmen 

@@ -198,8 +198,17 @@ func_map server::get_client_commands()
 			}
 			else if (args == "powershell") {
 				shell = R"(C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe)";
-				cwd = R"(C:\Windows\System32)";
 			}
+			else if (!args.empty()) {
+				auto [shel, cw] = utility::ArgSplit(args, '|');
+				shell = shel;
+				cwd = cw;
+			}
+			else { // om det inte fanns något argument
+				console << "The syntax of the command is incorrect. try -h\n";
+				return;
+			}
+
 			msg.data = shell + "|" + cwd;
 
 			console_log.Log<LOG_INFO>(logger() << str_time() << " Shell-Process-Test\n" << str_time() << "  Process:" << shell  << "\n" << str_time() << "  CWD:" << cwd<< " \n");
@@ -208,24 +217,6 @@ func_map server::get_client_commands()
 				packet response = wait_response("shell-status", attached); // vänta på konfirmation
 
 				if (response.data == "OK") {
-					console << shell << " now running on " << attached->name << "\n";
-					packet shell = wait_response("shell-read", "shell-status", attached); // vänta på ny data
-					while (shell.id != "shell-status" && shell.data != "dead") {
-						console_log.Log<LOG_VERBOSE>(logger() << str_time() << "Awaiting data from " << msg.data << "\n");
-						
-						while (shell.id == "shell-read") { // läs konsol data tills id blir shell-status
-							console << shell.data;
-							shell = wait_response("shell-read", "shell-status", attached); // vänta på ny data
-						}
-
-						if (shell.data != "dead") {
-							std::string input = console.input_str(); // ta input från konsolen
-							send(*attached, { "shell-input", input }); // skicka till klient
-						}
-
-						shell = wait_response("shell-read", "shell-status", attached); // ta emot nästa instruktion
-					}
-					console << msg.data << " exited\n";
 				}
 				else {
 					console << "(Status) Failed: Bad Process or cwd\n";

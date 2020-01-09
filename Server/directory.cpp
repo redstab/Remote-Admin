@@ -10,7 +10,7 @@ std::vector<dir_item> directory::ascend()
 
 std::vector<dir_item> directory::descend(int index)
 {
-	if (index >= 0 && index < current_directory_.size()) { // bounds check
+	if (index >= 0 && index < static_cast<int>(current_directory_.size())) { // bounds check
 		auto item = current_directory_[index].first;
 		if (item.extension() == "") {// is folder
 			dir /= item; // append end -> (c:\\) / (books) = c:\books
@@ -75,7 +75,7 @@ std::vector<dir_item> directory::index()
 			}
 			else {
 				std::error_code er;
-				int file_size = std::filesystem::file_size(p, er); // få storlek
+				int file_size = static_cast<int>(std::filesystem::file_size(p, er)); // få storlek
 				directory_items.push_back({ std::filesystem::path(p), file_size}); // lägg till path med storlek
 			}
 		}
