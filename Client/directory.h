@@ -9,6 +9,8 @@ class directory
 {
 public:
 
+	directory() {};
+
 	directory(std::string); // initializera klassen till en basmapp
 
 	std::vector<dir_item> ascend(); // gå upp till föräldrar mappen och returnera den

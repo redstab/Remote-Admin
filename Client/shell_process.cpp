@@ -55,6 +55,18 @@ void shell_process::read(std::function<void(std::string)> output_func)
 	}
 }
 
+std::string shell_process::read_once() {
+	DWORD bytes = 0;
+	std::vector<char> output;
+	if (PeekNamedPipe(output_read, 0, 0, 0, &bytes, 0) && bytes != 0) {
+		output.resize(bytes);
+		if (!ReadFile(output_read, &output.at(0), bytes, 0, 0)) {
+			std::cout << "ReadFile() -> " << GetLastError() << std::endl;
+		}
+	}
+	return std::string(output.begin(), output.end());
+}
+
 bool shell_process::write(std::string input)
 {
 	return WriteFile(input_write, input.c_str(), input.length(), nullptr, nullptr);
@@ -73,6 +85,7 @@ void shell_process::close()
 shell_process::~shell_process()
 {
 	// stäng alla handles för att undvika läckor
+	close();
 	CloseHandel(input_read);
 	CloseHandel(input_write);
 	CloseHandel(output_read);

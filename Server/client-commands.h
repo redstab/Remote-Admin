@@ -218,39 +218,73 @@ func_map server::get_client_commands()
 				
 				if (response.data == "OK") {
 					delete_packet(response);
-					bool alive = true;
-					bool ready = false;
 					console << "(Status) Success: Shell started\n";
+					console_log.Log<LOG_VERBOSE>(logger() << str_time() << " shell_init() - " << Error(0).to_string() << "\n");
 
-					std::thread read_thread([&] {
-						while (alive) {
-							packet read_data = wait_response("shell-read", "shell-status", attached);
+					bool dead = false; // process död?
 
-							if (read_data.id == "shell-read") { // shell-read -> printa
-								console << read_data.data;
+					// Anta att konsolen processen skriver ut något innan man skriver in något. read -> input <- read
+
+					while (!dead && !attached->ip_address.empty()) { // medans processen inte är död och klienten är ansluten
+
+						int threshold = 3; // detta är för att konsolen blir skrivklar innan allt har hunnit skrivas till pipen, därför kräver vi 3 mer läsningar för att kompensera för det
+						int writable = 0; // skrivbar?
+						// Ta emot data
+						while (writable < threshold && !attached->ip_address.empty()) { // medans vi inte kan skriva något tar vi emot data
+							if(send(*attached, { "shell-read", "now" })) { // skicka förfrågan, om lyckas
+								packet respons = wait_response("response|shell-read", attached); // ta emot svar
+
+								auto [status, data] = utility::ArgSplit(respons.data, '|'); // dela status och data från svaret
+
+								//kontrollera status
+								// ready => konsolen behöver input
+								// alive => konsolen är vid liv och kan läasas från
+								// dead  => konsolen är död och kan inte läsas från
+
+								if (status == "ready") { // när vi kan skriva data så behöver vi inte ta emot mer data
+									console_log.Log<LOG_INFO>(logger() << str_time() << " shell_writable() - true" << "\n");
+									writable += 1;
+								}
+								else if (status == "dead") { // när processen dör så behöver vi inte ta emot mer data
+									console_log.Log<LOG_INFO>(logger() << str_time() << " shell() - " << Error(10070, "konsolen dog").to_string() << "\n");
+									dead = true;
+									break;
+								}
+
+								if(status != "dead"){ // status måste vara alive eller ready => printa data
+									console << data;
+								}
+
+								delete_packet(respons); 
 							}
-							else if (read_data.id == "shell-status" ) {// shell-status -> dö
-								alive = false;
+							else {
+								console << Error(0).to_string() << "\n";
 							}
+						}
 
-							delete_packet(read_data);
-						}
-					});
+						// Skriv ny input till konsol
+						std::string input = console.input_str(false);
+						if (!attached->ip_address.empty() && send(*attached, {"shell-write", input + "\n"})) { // skicka förfrågan
+							packet respons = wait_response("response|shell-write", attached); // ta emot svar
+							auto [status, data] = utility::ArgSplit(respons.data, '|'); // dela status och data från svaret
 
-					while (alive) {
-						packet read_data = wait_response("shell-ready", attached);	
-						if (read_data.data != "died") {
-							std::string console_input = console.input_str(false) + "\n"; // padda process prompten och ta input därifrån
-							send(*attached, { "shell-input", console_input });
+							// kontrollera status
+							if (status != "alive" || data != "OK") { // => måste konsolen vara död
+								console_log.Log<LOG_INFO>(logger() << str_time() << " shell() - " << Error(10070, "konsolen dog").to_string() << "\n");
+								dead = true;
+							}
+							else {
+								console_log.Log<LOG_INFO>(logger() << str_time() << " write-shell() - " << Error(0, "kunde skriva " + data + " till konsolen").to_string() << "\n");
+							}
 						}
-						else {
-							alive = false;
+						else { // antar då att send returnerade false alltså SOCKET_ERROR -> död konsol
+							console_log.Log<LOG_INFO>(logger() << str_time() << " shell() - " << Error(10070, "konsolen dog").to_string() << "\n");
+							dead = true;
 						}
-						delete_packet(read_data);
 					}
 
-					read_thread.join();
-					console << "\n\n(Status) Success Process Exited\n";
+
+					console << "\n\n(Status) Success: Process Exited\n";
 				}
 				else {
 					console << "(Status) Failed: " << response.data << "\n";

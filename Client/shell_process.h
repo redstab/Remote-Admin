@@ -13,6 +13,9 @@ struct properties {
 class shell_process
 {
 public:
+
+	shell_process() {}
+
 	shell_process(properties prop);
 
 	bool open();
@@ -22,6 +25,8 @@ public:
 	bool ready();
 
 	void read(std::function<void(std::string)>);
+
+	std::string read_once();
 
 	bool write(std::string);
 

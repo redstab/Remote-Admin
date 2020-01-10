@@ -86,7 +86,11 @@ bool tcp_client::send(message meddelande)
 {
 	// med meddelande strukturen ex{ data: KS, id: HELLOWORLD } skapas meddelande buffer som ser ungefär ut så här: 000000000000010000000000000002HELLOWORLDKS
 	std::string buffer = meddelande.buffer();
-	return !Error(::send(server_socket, buffer.c_str(), buffer.length(), 0)); // Kolla efter error och skicka packet
+	Error send_error = ::send(server_socket, buffer.c_str(), buffer.length(), 0);
+	if (meddelande.identifier != "response|download") { // eftersom att downloads data är binärt så ger utskriften karaktärer som inte går att skriva ut som chars
+		std::cout << "send()[" << meddelande.buffer() << "] - " << send_error << std::endl;
+	}
+	return send_error != SOCKET_ERROR; // Kolla efter error och skicka packet
 }
 
 
@@ -175,9 +179,6 @@ void tcp_client::handle_packet(packet paket)
 		message msg; // skapa nytt meddelande med tabellvärdet
 		msg.identifier = "response|" + id;
 		msg.data = response_map[id](data);
-		if (msg.identifier != "response|download") { // eftersom att downloads data är binärt så ger utskriften karaktärer som inte går att skriva ut som chars
-			std::cout << "send()[" << msg.buffer() << "]" << std::endl;
-		}
 		send(msg); // skicka respons
 	}
 	else if (action_map.count(id)) { // om pakete idet finns i action tabbellen

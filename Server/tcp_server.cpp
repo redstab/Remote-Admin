@@ -89,7 +89,7 @@ bool tcp_server::send(client klient, message meddelande)
 	// med meddelande strukturen ex{ data: KS, id: HELLOWORLD } skapas meddelande buffer som ser ungefär ut så här [id-size][data-size][id][data]: 000000000000010000000000000002HELLOWORLDKS
 	std::string buffer = meddelande.buffer();
 	Error send_error = ::send(klient.socket_id, buffer.c_str(), buffer.length(), 0);
-	log->Log<LOG_INFO>(logger() << str_time() << " send(" << klient.socket_id << ", " << meddelande.identifier << "|" << meddelande.data.substr(0, 10) << ") - " << (send_error != SOCKET_ERROR ? "fail" : "success") << "\n");
+	log->Log<LOG_INFO>(logger() << str_time() << " send(" << klient.socket_id << ", " << meddelande.identifier << ", d-size:" << meddelande.data.length() << ") - " << (send_error == SOCKET_ERROR ? "fail" : "success") << "\n");
 	return send_error != SOCKET_ERROR; // Kolla efter error och skicka packet
 }
 
@@ -128,7 +128,7 @@ std::string tcp_server::receive_bytes(client& klient, int size)
 	}
 	else if (bytes_received <= 0) { // user disconnected 
 		log->Log<LOG_SUPER_VERBOSE>(logger() << str_time() << " receive_bytes(" << size << ") - incorrect size\n");
-		if (Error(bytes_received).code != 10038 && !klient.ip_address.empty()) { // error 10038 är att utföra recv på något som inte är en socket, alltså måste detta innebära att vi har kallat recv på en klient som är bortagen därför bör vi inte gör något
+		if (WSAGetLastError() != 10038 && !klient.ip_address.empty()) { // error 10038 är att utföra recv på något som inte är en socket, alltså måste detta innebära att vi har kallat recv på en klient som är bortagen därför bör vi inte gör något
 			log->Log<LOG_INFO>(logger() << str_time() << " disconnect(" << klient.socket_id << ") - [" << std::to_string(klient.socket_id) << "|" << klient.ip_address << "]\n");
 			clients.disconnect_client(klient);
 		}
