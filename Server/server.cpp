@@ -196,61 +196,60 @@ std::pair<int, bool> server::pick_template(int max_elements, int top_offset, siz
 
 bool server::pick_file(std::filesystem::path root, std::string& buffer)
 {
-	std::string file_buffer;
+	std::string path = root.string();
 
-	if (send(*attached, { "select", root.string() })) {
+	console_log.Log<LOG_INFO>(logger() << str_time() << " pick() - init\n");
 
-		console.clear_element(); // "göm" konsolen
-		refresh();
-		wrefresh(console.get_derived());
-		wrefresh(window_.get_window());
+	while (buffer.empty() && !attached->ip_address.empty()) { // medans vi inte har valt något och inte har förlorat anslutning till klient
 
-		while (file_buffer.empty()) { // medans vi inte har någon fil i buffern
-			std::vector<std::pair<std::filesystem::path, int>> items; // vektor buffer för mapp innehåll
-			packet status = wait_response("dir_status", attached); // dir_status är hur många element som finns i mappen
-			int amount = std::stoi(status.data); // konvertera till int
-			delete_packet(status); // ta bort från kön
-			for (int i = 0; i < amount; i++) // ta emot amount antal packet
-			{
-				packet file = wait_response("filedescription", attached); // måste ha id 'filedescription' och ha attached som ägare
-				auto [path, size] = utility::ArgSplit(file.data, '|'); // c:\windows\system32\cmd.exe|231232 -> path[c:\windows\system32\cmd.exe], size[231232]
-				items.push_back({ path, std::stoi(size) }); // lägg till
-				delete_packet(file); // ta bort från kön
+		if (send(*attached, { "folder-index", path })) { // fråga om indexering av mapp
+
+			console_log.Log<LOG_VERBOSE>(logger() << str_time() << " index() - " << Error(0).to_string() << "\n");
+
+			std::vector<std::pair<std::filesystem::path, int>> folder_items;
+
+			packet folder = wait_response("response|folder-index", attached); // vänta på svar
+
+			std::string seperated_list = folder.data; // representerar | separerad lista med filer och mappar
+
+			delete_packet(folder); // ta bort svar
+
+			// ta första elementet i listan och lägg till i mapp vektorn och gör detta tills att det inte finns något kvar
+			// a|b|c|d -> b|c|d -> c|d -> d -> _
+			while (!seperated_list.empty()) { // medans | separerade listan inte är tom
+
+				auto [folder_item, rest] = utility::ArgSplit(seperated_list, '|'); // splita element
+
+				auto [item, size] = utility::ArgSplit(folder_item, '*'); // splita element till path och storlek
+
+				folder_items.push_back({ item, std::stoi(size) }); // lägg till i vektor
+
+				seperated_list = rest; // nya listan som ska separeras blir den reseterande delen av nuvarande listan
 			}
 
-			int index = pick_template(items.size(), 1, console.get_element_size(),
-				[&](int cursor, int offset) {utility::print_dir(items, "File to download from " + attached->name, console.get_derived(), offset, cursor, console.get_element_size()); },
-				[&] {
-					if (!(attached->name.empty() || attached->ip_address.empty())) { // om klient är ansluten
-						send(*attached, { "dir_action", "done" }); // indikera för clienten att vi är klara
-					}
-					else {
-						client_commands["detach"]("");
-					}
+			auto pick_result = pick_template(folder_items.size(), 1, console.get_element_size(),
+				[&](int cursor, int offset) { utility::print_dir(folder_items, "File to download from " + attached->name, console.get_derived(), offset, cursor, console.get_element_size()); },
+				[&]
+				{
+					console << "(Status) Failed: Client Disconnected\n";
 					console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
-				}).first;
+				});
+			
+			console_log.Log<LOG_VERBOSE>(logger() << str_time() << " pick()[" << std::to_string(pick_result.first) << "] - " << Error(0).to_string() << "\n");
 
-			if (index < 0 || attached->name.empty() || attached->ip_address.empty()) { // om klienten inte är ansluten
-				client_commands["detach"]("");
-				console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
+			if (pick_result.first == -1 || attached->ip_address.empty()) { // klient dc
 				return false;
 			}
-			else {
-				if (items[index].second == -9) { // om vi valde en undermapp
-					send(*attached, { "goto", std::to_string(index) });// indikera att vi vill besöka en undermapp
-				}
-				else { // om vi valde en fil
-					send(*attached, { "dir_action", "done" }); // indikera tt vi är klara
-					file_buffer = items[index].first.string(); // sätt buffer till path
-				}
+			else if(folder_items[pick_result.first].second == -9) { // om det valda elementet är en mapp[size = -9] så går vi in i den
+				path = std::filesystem::path(path + "\\" + folder_items[pick_result.first].first.filename().string()).lexically_normal().string(); // uppdatera path med den nya pathen
+				console_log.Log<LOG_VERBOSE>(logger() << str_time() << " descend()[" << path << "] - ok\n");
 			}
-
+			else { // annars måste det valda elementet vara en fil då väljer vi den
+				buffer = folder_items[pick_result.first].first.string();
+				console_log.Log<LOG_VERBOSE>(logger() << str_time() << " pick()[" << buffer << "] - ok\n");
+				return true;
+			}
 		}
-
-		buffer = file_buffer;
-		console.clear_element(); // "göm" konsolen
-		console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
-		return true; // returnera success
 
 	}
 	return false;
@@ -268,8 +267,9 @@ bool server::pick_file_local(std::filesystem::path root, std::string& buffer)
 
 	while (file_buffer.empty()) { // medans vi inte har någon fil i buffern
 		int index = pick_template(explorer.current_directory().size(), 1, console.get_element_size(),
-			[&](int cursor, int offset) {utility::print_dir(explorer.current_directory(), "File to upload to " + attached->name, console.get_derived(), offset, cursor, console.get_element_size()); },
-			[&] {
+			[&](int cursor, int offset) { utility::print_dir(explorer.current_directory(), "File to upload to " + attached->name, console.get_derived(), offset, cursor, console.get_element_size()); },
+			[&]
+			{
 				console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
 			}).first;
 		if (index < 0) {
@@ -291,63 +291,62 @@ bool server::pick_file_local(std::filesystem::path root, std::string& buffer)
 
 bool server::pick_folder(std::filesystem::path root, std::string& buffer)
 {
-	std::string folder_buffer;
+	std::string path = root.string();
+	console_log.Log<LOG_INFO>(logger() << str_time() << " pick() - init\n");
 
-	if (send(*attached, { "select", root.string() })) {
+	while (buffer.empty() && !attached->ip_address.empty()) { // medans vi inte har valt något och inte har förlorat anslutning till klient
 
-		console.clear_element(); // "göm" konsolen
-		refresh();
-		wrefresh(console.get_derived());
-		wrefresh(window_.get_window());
+		if (send(*attached, { "folder-index", path })) { // fråga om indexering av mapp
+			
+			console_log.Log<LOG_VERBOSE>(logger() << str_time() << " index() - " << Error(0).to_string() << "\n");
 
-		while (folder_buffer.empty()) { // medans vi inte har någon fil i buffern
-			std::vector<std::pair<std::filesystem::path, int>> items; // vektor buffer för mapp innehåll
-			packet status = wait_response("dir_status", attached); // dir_status är hur många element som finns i mappen
-			int amount = std::stoi(status.data); // konvertera till int
-			delete_packet(status); // ta bort från kön
-			for (int i = 0; i < amount; i++) // ta emot amount antal packet
-			{
-				packet file = wait_response("filedescription", attached); // måste ha id 'filedescription' och ha attached som ägare
-				auto [path, size] = utility::ArgSplit(file.data, '|'); // c:\windows\system32\cmd.exe|231232 -> path[c:\windows\system32\cmd.exe], size[231232]
-				items.push_back({ path, std::stoi(size) }); // lägg till
-				delete_packet(file); // ta bort från kön
+			std::vector<std::pair<std::filesystem::path, int>> folder_items;
+
+			packet folder = wait_response("response|folder-index", attached); // vänta på svar
+
+			std::string seperated_list = folder.data; // representerar | separerad lista med filer och mappar
+
+			delete_packet(folder); // ta bort svar
+
+			// ta första elementet i listan och lägg till i mapp vektorn och gör detta tills att det inte finns något kvar
+			// a|b|c|d -> b|c|d -> c|d -> d -> _
+			while (!seperated_list.empty() && !attached->ip_address.empty()) { // medans | separerade listan inte är tom
+
+				auto [folder_item, rest] = utility::ArgSplit(seperated_list, '|'); // splita element
+
+				auto [item, size] = utility::ArgSplit(folder_item, '*'); // splita element till path och storlek
+
+				folder_items.push_back({ item, std::stoi(size) }); // lägg till i vektor
+
+				seperated_list = rest; // nya listan som ska separeras blir den reseterande delen av nuvarande listan
 			}
 
-			auto pick = pick_template(items.size(), 1, console.get_element_size(),
-				[&](int cursor, int offset) {utility::print_dir(items, "Folder to drop file to " + attached->name, console.get_derived(), offset, cursor, console.get_element_size()); },
-				[&] {
-					if (!(attached->name.empty() || attached->ip_address.empty())) { // om klient är ansluten
-						send(*attached, { "dir_action", "done" }); // indikera för clienten att vi är klara
-					}
-					else {
-						client_commands["detach"]("");
-					}
+			auto pick_result = pick_template(folder_items.size(), 1, console.get_element_size(),
+				[&](int cursor, int offset) { utility::print_dir(folder_items, "Folder to drop file to in " + attached->name, console.get_derived(), offset, cursor, console.get_element_size()); },
+				[&]
+				{
+					console << "(Status) Failed: Client Disconnected\n";
 					console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
 				});
 
-			if (pick.first < 0 || attached->name.empty() || attached->ip_address.empty()) { // om klienten inte är ansluten
-				client_commands["detach"]("");
-				console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
+			console_log.Log<LOG_VERBOSE>(logger() << str_time() << " pick()[" << std::to_string(pick_result.first) << "] - " << Error(0).to_string() << "\n");
+			
+			if (pick_result.first == -1 || attached->ip_address.empty()) { // klient dc
+				console << "(Status) Failed: Client Disconnected\n";
 				return false;
 			}
-			else {
-				if (items[pick.first].second == -9) {
-					if (pick.second) { // om vi valde att besöka undermappen
-						send(*attached, { "goto", std::to_string(pick.first) });// indikera att vi vill besöka en undermapp
-					}
-					else { // om vi valde mappen att skriva till
-						send(*attached, { "dir_action", "done" }); // indikera tt vi är klara
-						folder_buffer = items[pick.first].first.string(); // sätt buffer till path
-					}
+			else if (folder_items[pick_result.first].second == -9) { // om det valda elementet är en mapp[size = -9] så går vi in i den
+				if (pick_result.second) {
+					path = std::filesystem::path(path + "\\" + folder_items[pick_result.first].first.filename().string()).lexically_normal().string(); // uppdatera path med den nya pathen
+					console_log.Log<LOG_VERBOSE>(logger() << str_time() << " descend()[" << path << "] - ok\n");
+				}
+				else {
+					buffer = folder_items[pick_result.first].first.lexically_normal().string(); // returnera med valda pathen
+					console_log.Log<LOG_VERBOSE>(logger() << str_time() << " pick()[" << path << "] - ok\n");
+					return true;
 				}
 			}
-
 		}
-
-		buffer = folder_buffer;
-		console.clear_element(); // "göm" konsolen
-		console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
-		return true; // returnera success
 
 	}
 	return false;
@@ -365,8 +364,9 @@ bool server::pick_folder_local(std::filesystem::path root, std::string& buffer)
 
 	while (folder_buffer.empty()) { // medans vi inte har någon fil i buffern
 		auto index = pick_template(explorer.current_directory().size(), 1, console.get_element_size(),
-			[&](int cursor, int offset) {utility::print_dir(explorer.current_directory(), "Download file from " + attached->name + " to folder", console.get_derived(), offset, cursor, console.get_element_size()); },
-			[&] {
+			[&](int cursor, int offset) { utility::print_dir(explorer.current_directory(), "Download file from " + attached->name + " to folder", console.get_derived(), offset, cursor, console.get_element_size()); },
+			[&]
+			{
 				console.draw_element(); // ta bort explorer ui som skrivs ovanpå derived_ fönstret så genom att skriva console så överskrivs derived med konsolen
 			});
 		if (index.first < 0) {
@@ -391,8 +391,9 @@ bool server::pick_client(client*& buffer)
 {
 	if (clients.get_list().size() != 0) {
 		int index = pick_template(clients.get_list().size(), 2, console.get_element_size(),
-			[&](int cursor, int offset) {utility::print_clients(clients.get_list(), console.get_derived(), offset, cursor, console.get_element_size()); },
-			[&] {
+			[&](int cursor, int offset) { utility::print_clients(clients.get_list(), console.get_derived(), offset, cursor, console.get_element_size()); },
+			[&]
+			{
 				if (attached != nullptr && !(attached->name.empty() || attached->ip_address.empty())) { // om klient är ansluten
 					send(*attached, { "dir_action", "done" }); // indikera för clienten att vi är klara
 				}

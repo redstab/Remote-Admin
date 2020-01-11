@@ -46,7 +46,6 @@ func_map server::get_client_commands()
 					console_log.Log<LOG_INFO>(logger() << str_time() << " Executing\n" << str_time() << "  File:" << file << "\n");
 
 					if (send(*attached, msg)) { // skicka förfrågan 
-						console << "Executing " << msg.data;
 						// om förfrågan kom fram, vänta på svar
 						packet response = wait_response("response|" + msg.identifier, attached);
 						if (response.data == "SUCCESS") { // skapde processen
@@ -172,7 +171,7 @@ func_map server::get_client_commands()
 
 					packet response = wait_response("upload_status", attached); // vänta på konfirmation
 
-					if (response.data == "OK") {
+					if (response.data == "Ok") {
 
 						std::ifstream file(upload_file, std::ios::binary); // läs in filen binärt
 
@@ -263,8 +262,11 @@ func_map server::get_client_commands()
 						}
 
 						// Skriv ny input till konsol
-						std::string input = console.input_str(false);
-						if (!attached->ip_address.empty() && send(*attached, {"shell-write", input + "\n"})) { // skicka förfrågan
+						std::string input;
+						if (!attached->ip_address.empty() && !dead) {
+							input = console.input_str(false);
+						}
+						if (!attached->ip_address.empty() && send(*attached, {"shell-write", input + "\n"}) && !dead) { // skicka förfrågan
 							packet respons = wait_response("response|shell-write", attached); // ta emot svar
 							auto [status, data] = utility::ArgSplit(respons.data, '|'); // dela status och data från svaret
 
@@ -274,7 +276,7 @@ func_map server::get_client_commands()
 								dead = true;
 							}
 							else {
-								console_log.Log<LOG_INFO>(logger() << str_time() << " write-shell() - " << Error(0, "kunde skriva " + data + " till konsolen").to_string() << "\n");
+								console_log.Log<LOG_INFO>(logger() << str_time() << " write-shell() - " << Error(0, "skrev " + data + " till konsolen").to_string() << "\n");
 							}
 						}
 						else { // antar då att send returnerade false alltså SOCKET_ERROR -> död konsol
@@ -282,7 +284,6 @@ func_map server::get_client_commands()
 							dead = true;
 						}
 					}
-
 
 					console << "\n\n(Status) Success: Process Exited\n";
 				}

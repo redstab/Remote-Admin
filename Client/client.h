@@ -43,8 +43,6 @@ private:
 
 	shell_process shell;
 
-	directory explorer;
-
 	/// <summary>
 	/// Funktionen kallas när klienten anslutnings avbryts och när den ska skapas
 	/// </summary>
