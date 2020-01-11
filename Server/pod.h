@@ -7,22 +7,26 @@ struct client {
 	std::string ip_address; // ipaddressen på klienten
 	std::string name; // pseudo namnet på klienten
 
-	std::unordered_map<std::string, std::string> client_information = { // information om klienten
-		{"Windows Product",""},
-		{"Windows Owner",""},
-		{"Windows Organization",""},
-		{"Windows Architecture",""},
-		{"Windows Username",""},
-		{"Computer Name",""},
-		{"Motherboard Vendor",""},
-		{"Motherboard Name",""},
-		{"BIOS Vendor",""},
-		{"BIOS Version",""},
-		{"BIOS Date",""},
-		{"Processor Name",""},
-		{"Processor Speed",""},
-		{"RAM Size",""},
-		{"GPU Name",""}
+	std::unordered_map<std::string, std::string> computer_information = { // hård och mjukvaru information om klienten
+		{"windows-product",""},
+		{"windows-owner",""},
+		{"windows-architecture",""},
+		{"computer-name",""},
+		{"cpu-name", ""},
+		{"ram-size",""},
+		{"windows-username",""},
+		{"running-as-admin", ""}
+	};
+
+	std::unordered_map<std::string, std::string> location_information = { // platsbaserad information om klienten
+		{"public-ip", ""},
+		{"continent", ""},
+		{"country", ""},
+		{"region", ""},
+		{"city", ""},
+		{"latitude", ""},
+		{"longitude", ""},
+		{"language", ""}
 	};
 
 	bool operator==(const client& that) const { // vid jämnförelse av olika klienter

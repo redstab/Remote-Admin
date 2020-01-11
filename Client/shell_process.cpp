@@ -74,7 +74,13 @@ bool shell_process::write(std::string input)
 
 bool shell_process::alive()
 {
-	return WaitForSingleObject(process_.hProcess, 50);
+	if (WaitForSingleObject(process_.hProcess, 50)) {
+		return true;
+	}
+	else {
+		this->~shell_process();
+		return false;
+	}
 }
 
 void shell_process::close()

@@ -36,6 +36,9 @@
     <ClCompile Include="shell_process.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="http_session.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="error.h">
@@ -68,5 +71,11 @@
     <ClInclude Include="shell_process.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="http_session.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
