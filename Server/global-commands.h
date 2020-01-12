@@ -82,11 +82,13 @@ func_map server::get_global_commands()
 		}},
 
 		{ "help", [&](std::string args) { // visa hjälp
-			console << "\n";
-			for (auto [func, doc] : (attached != nullptr ? klient_help : server_help)) {
-				console << func << " - " << doc << "\n";
-			}
-			console << "\n";
+			argument_parser([&](std::string value){
+				console << "\n";
+				for (auto [func, doc] : utility::add(global_help, (attached == nullptr ? server_help : klient_help))) {
+					console << func << " - " << doc << "\n";
+				}
+				console << "\n";
+			}, args, "help");
 		}},
 
 		{ "clear",[&](std::string args) { // rensa ett fönster
@@ -111,7 +113,7 @@ func_map server::get_global_commands()
 					std::unordered_map<std::string, int> log_values = {
 						{"info", LOG_INFO},
 						{"verbose", LOG_VERBOSE},
-						{"sverbose", LOG_SUPER_VERBOSE},
+						{"vverbose", LOG_SUPER_VERBOSE},
 						{"everything", LOG_ALL}
 					};
 

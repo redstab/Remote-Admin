@@ -21,6 +21,15 @@ namespace utility {
 		}
 		return fmf;
 	}
+	template<typename key, typename value>
+	std::unordered_map<key,value> add(std::unordered_map<key, value>& fmf, std::unordered_map<key, value>& fms)
+	{
+		for (auto pair : fms) {
+			fmf.insert(pair);
+		}
+		return fmf;
+	}
+
 
 	void print_map(std::unordered_map<std::string, std::string> map, std::string prefix, std::string delimit, std::string postfix, command_line& console)
 	{

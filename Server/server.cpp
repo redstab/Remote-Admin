@@ -82,7 +82,7 @@ void server::argument_handler(func_map fm, std::string args, std::string func)
 			return;
 		}
 		else if (argument == "-h") { // show help
-			console << (attached == nullptr ? server_help[func] : klient_help[func]) << "\n";
+			console << utility::add(global_help, (attached == nullptr ? server_help : klient_help))[func] << "\n";
 		}
 		else { // invalid syntax
 			console << "The syntax of the command is incorrect. try " << func << " -h\n";
@@ -93,7 +93,7 @@ void server::argument_handler(func_map fm, std::string args, std::string func)
 void server::argument_parser(std::function<void(std::string)> f, std::string args, std::string func)
 {
 	if (args == "-h") {
-		console << (attached == nullptr ? server_help[func] : klient_help[func]) << "\n";
+		console << utility::add(global_help, (attached == nullptr ? server_help : klient_help))[func] << "\n";
 	}
 	else {
 		f(args);

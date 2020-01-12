@@ -27,20 +27,33 @@ public:
 	~server();
 private:
 
-	std::unordered_map<std::string, std::string> server_help = { // dictionary för att hantera hjälpen till server kommandon
-		{"show","shows properties about the server.\n\n show [property][-h]\n\n  properties:\n   clients\n   time\n   info\n"},
+	std::unordered_map<std::string, std::string> global_help = {
 		{"shutdown", "shuts down the server or [aborts]\n"},
-		{"scroll", "scrolls a window up or down\n\n  scroll <command|log> \n\n  scroll-up: arrow_up\n  scroll-down: arrow_down\n  scroll-done: enter\n"},
+		{"scroll", "scrolls a window up or down\n\n  scroll <command|log> \n\n   scroll-up: arrow_up\n   scroll-down: arrow_down\n   scroll-done: enter\n"},
+		{"hide", "hides the window/log from the screen\n\n  hide [log]\n\n   log : hides the log\n"},
+		{"unhide", "unhides/shows the window/log\n\n  unhide [log]\n\n   log : shows the log\n"},
+		{"help", "shows help documentation for every function\n"},
+		{"clear", "clears and removes text from a window\n\n  clear [window]\n\n   windows:\n\n    log : clears the logger window [right]\n    this[default] : clears the command line [left]\n"},
+		{"log", "sets the log level for the logger\n\n  log [level ...]\n\n   log-levels:\n\n    info : shows only the essential debug information\n    verbose : shows the more verbose debug information\n    vverbose : shows super verbose debug information\n    everything : shows messages from every log level\n"}
+	};
+
+	std::unordered_map<std::string, std::string> server_help = { // dictionary för att hantera hjälpen till server kommandon
+		{"show","shows properties about the server.\n\n  show [property]\n\n   properties:\n    clients\n    time\n    info\n"},
 		{"attach", "attaches to a client to interact with it \n\n  attach [name|ip|id]|[-p]\n   -p : pick client\n"},
 		{"reconnect", "reconnect a specific client\n\n  reconnect [name|id|ip|<all>]|-p\n   -p : pick client\n"},
 		{"disconnect", "disconnect a specific client \n\n  disconnect [name|id|ip|<all>]|-p\n   -p : pick client\n"}
 	};
+
 	std::unordered_map<std::string, std::string> klient_help = { // dictionary för att hantera hjälpen till klient kommandon
 		{"detach", "detaches from a client to interact with the server instead\n"},
 		{"reconnect", "reconnects the attached client\n"},
 		{"disconnect", "disconnects the attached client\n"},
 		{"process", "executes a process on klient\n\n  process [-h]|[-v] [path]|[-p]\n\n   -h : hidden\n   -v : visible\n   -p : gui pick executable\n   path : fullpath to executable\n"},
-		{"download", "downloads a file from the attached client\n\n  download [path]|[-p]\n\n   path : path to file\n   -p : pick path\n"}
+		{"download", "downloads a file from the attached client to the server\n\n  download [file] [folder] [-p]\n\n   file : path to file on client\n   folder : where to drop the file on the server   -p : pick path\n"},
+		{"upload", "uploads a file from the server to the attached client\n\n  upload [file] [folder] [-p]\n\n   path : path to the file on server\n   folder : where to drop the file on the client   -p : pick path\n"},
+		{"shell-process", "creates a interactive shell on the client\n\n  shell-process [shell] [wd]\n\n   shell : the shell application to run on the client\n   wd : the working directory of the executble\n"},
+		{"get-info", "fetches information about the client. view by calling show-info\n\n"},
+		{"show-info", "views the fetched information about the client\n\n  show-info [connection|computer|location|all]\n\n   connection : shows brief connectivity information about client\n   computer : shows information about the client computer\n   location : shows information about the current geolocation of the client\n   all : shows all the above information in a \"json\" like format\n"}
 	};
 
 	// det går inte att ha dessa mappar utanför instansen av klassen 
