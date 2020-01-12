@@ -73,7 +73,7 @@ void tcp_server::run()
 					packet paket = receive_paket(klient); // ta emot
 					if (paket.data != "" && paket.id != "") { // titta efter error
 						packet_queue.push_back(paket); // lägg till i kön 
-						log->Log<LOG_INFO>(logger() << str_time() << " recv(" << std::to_string(klient.socket_id) << ") - id[" << paket.id.substr(0, 13) << "..], data[" << std::to_string(paket.data.length()) << "]\n"); // logga motag
+						log->Log<LOG_INFO>(logger() << str_time() << " recv(" << std::to_string(klient.socket_id) << ") - id[" << std::to_string(paket.id.length()) << "], data[" << std::to_string(paket.data.length()) << "]\n"); // logga motag
 					}
 					else {
 						log->Log<LOG_VERBOSE>(logger() << str_time() << " recv(" << std::to_string(klient.socket_id) << ") - id[" << (paket.id.empty() ? "empty" : paket.id.substr(0, 14)) << "], data[" << (paket.id.empty() ? "empty" : std::to_string(paket.data.length())) << "]\n\n");

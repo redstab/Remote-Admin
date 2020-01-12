@@ -7,26 +7,29 @@ struct client {
 	std::string ip_address; // ipaddressen på klienten
 	std::string name; // pseudo namnet på klienten
 
-	std::unordered_map<std::string, std::string> computer_information = { // hård och mjukvaru information om klienten
-		{"windows-product",""},
-		{"windows-owner",""},
-		{"windows-architecture",""},
-		{"computer-name",""},
-		{"cpu-name", ""},
-		{"ram-size",""},
-		{"windows-username",""},
-		{"running-as-admin", ""}
-	};
+	std::unordered_map<std::string, std::unordered_map<std::string, std::string>> information{
+		{"computer", { // hård och mjukvaru information om klienten
+			{"Windows Product",""},
+			{"Windows Owner",""},
+			{"Windows Architecture",""},
+			{"Computer Name",""},
+			{"Cpu Name", ""},
+			{"Ram Size",""},
+			{"Windows Username",""},
+			{"Running As Admin", ""}
+		}},
+		
+		{"location", { // platsbaserad information om klienten
+			{"Public Ip", ""},
+			{"Continent", ""},
+			{"Country", ""},
+			{"Region", ""},
+			{"City", ""},
+			{"Latitude", ""},
+			{"Longitude", ""},
+			{"Language", ""}
+		}}
 
-	std::unordered_map<std::string, std::string> location_information = { // platsbaserad information om klienten
-		{"public-ip", ""},
-		{"continent", ""},
-		{"country", ""},
-		{"region", ""},
-		{"city", ""},
-		{"latitude", ""},
-		{"longitude", ""},
-		{"language", ""}
 	};
 
 	bool operator==(const client& that) const { // vid jämnförelse av olika klienter

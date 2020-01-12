@@ -51,24 +51,28 @@ func_map server::get_global_commands()
 
 				{"log", [&](std::string value) { // skrolla log
 					if (value == "reset") { // om man ska reseta scrollen till botten
-						while (console_log.scroll(1)) {}
+						while (console_log.scroll(-1)) {}
 						console_log.draw_element();
 					}
 					else {
 						console << "scrolling " << args;
 						scroll(console_log);
+						while (console_log.scroll(1)) {}
+						console_log.draw_element();
 						console << " -> done\n";
 					}
 				}},
 
 				{"command", [&](std::string value) { // skrolla konsolen
 					if (value == "reset") { // om man ska reseta scrollen till botten
-						while (console.scroll(1)) {}
+						while (console.scroll(-1)) {}
 						console.draw_element();
 					}
 					else {
 						console << "scrolling " << args;
 						scroll(console);
+						while (console.scroll(1)) {}
+						console.draw_element();
 						console << " -> done\n";
 					}
 				}}

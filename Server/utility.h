@@ -22,6 +22,13 @@ namespace utility {
 		return fmf;
 	}
 
+	void print_map(std::unordered_map<std::string, std::string> map, std::string prefix, std::string delimit, std::string postfix, command_line& console)
+	{
+		for (auto& [key, value] : map) {
+			console << prefix << key << delimit << value << postfix;
+		}
+	}
+
 	void print_dir(std::vector<std::pair<std::filesystem::path, int>> items, std::string klient, WINDOW* win, int offset, int selected, size max_size) {
 		mvwprintw(win, 0, 0, std::string("%-" + std::to_string(max_size.x) + "s").c_str(), (klient + "[" + std::to_string(items.size()) + "] - " + items[1].first.parent_path().string()).c_str()); // printa en titel
 		for (int i = offset; i < max_size.y - 1 + offset; i++) {

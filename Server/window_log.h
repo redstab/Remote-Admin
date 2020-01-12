@@ -53,4 +53,5 @@ inline void window_log::Log(std::stringstream logger)
 	if (log_level_ & T) {
 		*this << logger.str();
 	}
+	draw_element();
 }
