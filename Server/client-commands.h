@@ -183,6 +183,7 @@ func_map server::get_client_commands()
 						console << "(Status) Failed: Bad Folder\n";
 					}
 
+					delete_packet(response);
 				}
 
 			}, args, "upload");
@@ -279,6 +280,8 @@ func_map server::get_client_commands()
 								else { // => skrivning lyckades
 									console_log.Log<LOG_INFO>(logger() << str_time() << " write-shell() - " << Error(0, "skrev " + data + " till konsolen").to_string() << "\n");
 								}
+
+								delete_packet(respons);
 							}
 							else { // antar då att send returnerade false alltså SOCKET_ERROR -> död konsol
 								console_log.Log<LOG_INFO>(logger() << str_time() << " shell() - " << Error(10070, "konsolen dog").to_string() << "\n");
@@ -305,7 +308,7 @@ func_map server::get_client_commands()
 					for (auto& [key, value] : information_dict) { // loopa genom informations queries
 						if (send(*attached, { "info", key })) { // skicka query
 							packet response = wait_response("response|info", attached); // vänta på svar
-							if (response.id.empty() || response.data.empty()) {
+							if (attached->ip_address.empty()) {
 								console << "(Status) Failed: Client Disconnected\n";
 								return;
 							}
@@ -321,6 +324,7 @@ func_map server::get_client_commands()
 					}
 				}
 				console << "(Status) Success: Got information\n";
+				console_log.draw_element();
 			}, args, "get-info");
 		}},
 
